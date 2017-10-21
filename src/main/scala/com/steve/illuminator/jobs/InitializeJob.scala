@@ -9,6 +9,6 @@ object InitializeJob extends CommonCassandraJob {
 
     init(args)
 
-    ItemProcessor.process(sc)
+    ItemProcessor.process(sc, ss)
   }
 }
