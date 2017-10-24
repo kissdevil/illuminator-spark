@@ -10,13 +10,13 @@ import org.apache.spark.{SparkConf, SparkContext}
 trait CommonCassandraJob {
 
   val conf = new SparkConf(true).setAppName("SteveTestDataStax")
-      .setMaster("yarn")
+      /*.setMaster("yarn")*/
       .set("spark.cassandra.connection.host", "127.0.0.1")
       .set("spark.cassandra.connection.port", "9042")
 
   val sc = new SparkContext(conf)
 
-  val ss = SparkSession.builder().appName("SteveTestDataStax").master("yarn")
+  val ss = SparkSession.builder().appName("SteveTestDataStax")/*.master("yarn")*/
       .config("spark.cassandra.connection.host", "127.0.0.1")
       .config("spark.cassandra.connection.port", "9042")
       .getOrCreate();

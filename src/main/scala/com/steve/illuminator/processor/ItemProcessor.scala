@@ -1,14 +1,12 @@
 package com.steve.illuminator.processor
 
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkContext, TaskContext}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.writer.SqlRowWriter
 import org.apache.spark.sql.{Row, SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
 import com.typesafe.scalalogging.Logger
 import org.apache.spark.rdd.RDD
-
-
 
 
 /**
@@ -48,9 +46,9 @@ object ItemProcessor {
 
 
     val vendors = ss.read.format("org.apache.spark.sql.cassandra").
-        options(Map("keyspace" -> "buyboxtest", "table" -> "vendor_items")).load();
+        options(Map("keyspace" -> "buyboxtest", "table" -> "vendors")).load();
 
-    /*vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
+    vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
         select(
           vendor_items("vendoritemid"),
           vendor_items("itemid"),
@@ -61,15 +59,13 @@ object ItemProcessor {
       list.sliding(200, 200).foreach(block => {
         {
           block
-              .foreach(row => {
-                println(row.getAs[Long]("vendoritemid").toString, row.getAs[Long]("itemid").toString,
-                  row.getAs[Long]("vendorid").toString, row.getAs[Long]("banned").toString)
-              })
+              .foreach(row => printVendorItem(row))
 
         }
       })
     })
-*/
+
+
     /*val rows: RDD[Row] = vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
         select(
           vendor_items("vendoritemid"),
@@ -81,22 +77,32 @@ object ItemProcessor {
     rows.saveToCassandra("buyboxtest", "vendor_items_detail", SomeColumns("vendoritemid", "itemid","vendorid","banned"))
 */
 
-    vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
+    /*vendor_items.write
+        .format("org.apache.spark.sql.cassandra")
+        .options(Map("keyspace" -> "buyboxtest", "table" -> "vendor_items_copy"))
+        .mode(SaveMode.Append)
+        .save()*/
+
+    /*vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
         select(
           vendor_items("vendoritemid"),
           vendor_items("itemid"),
           vendors("vendorid"),
           vendors("banned")
-        ).write
+        )
+        .write
         .format("org.apache.spark.sql.cassandra")
         .options(Map("keyspace" -> "buyboxtest", "table" -> "vendor_items_detail"))
         .mode(SaveMode.Append)
-        .save()
+        .save()*/
 
   }
 
-  def printVendorItem(row: Row): Unit = (
-      println("line:" + row.getAs[Long]("vendoritemid").toString + row.getAs[Long]("itemid").toString
-        , row.getAs[Long]("vendorid").toString + row.getAs[Long]("banned").toString)
-      )
+  def printVendorItem(row: Row): Unit = {
+      println(row.getAs[Long]("vendoritemid").toString, row.getAs[Long]("itemid").toString,
+        row.getAs[Long]("vendorid").toString, row.getAs[Long]("banned").toString)
+      println ("subline====" + TaskContext.get.partitionId()
+  }
+
+
 }
