@@ -53,6 +53,8 @@ dependencies {
 	compile 'com.typesafe.scala-logging:scala-logging_2.11:3.5.0'
 	compile 'ch.qos.logback:logback-classic:1.2.3'
 
+	compile 'mysql:mysql-connector-java:5.1.16'
+
 	testCompile 'org.slf4j:slf4j-simple:1.7.25'
 }
 
