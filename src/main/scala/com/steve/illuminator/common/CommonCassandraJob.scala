@@ -1,5 +1,6 @@
 package com.steve.illuminator.common
 
+import com.typesafe.config.ConfigFactory
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
 
@@ -22,8 +23,5 @@ trait CommonCassandraJob {
       .enableHiveSupport()
       .getOrCreate();
 
-  def init(args: Array[String]): Unit = {
-
-  }
 
 }

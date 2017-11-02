@@ -3,6 +3,8 @@ package com.steve.illuminator.processor
 import org.apache.spark.{SparkContext, TaskContext}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.writer.SqlRowWriter
+import com.steve.illuminator.common.ItemBrand
+import com.steve.illuminator.dictionary.DictionaryService
 import org.apache.spark.sql.{Row, SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
 import com.typesafe.scalalogging.Logger
@@ -12,7 +14,6 @@ import org.apache.spark.sql.Dataset
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.{ArrayType, MapType, _}
 import org.apache.spark.sql._
-
 import org.apache.spark.sql.types._;
 
 /**
@@ -22,6 +23,16 @@ import org.apache.spark.sql.types._;
 object ItemProcessor {
 
   private[this] val logger = Logger(this.getClass)
+
+  def parseAndExtract(row: Row): ItemBrand = {
+    val categoryCode = row.getAs[Long]("displayCategoryCode")
+    val brand = DictionaryService.getBrandByCategory(categoryCode)
+    new ItemBrand(row.getAs[String]("itemId").toLong,
+      200,
+      row.getAs[String]("productId").toLong,
+      row.getAs[Long]("displayCategoryCode"),
+      row.getAs[String]("brand"))
+  }
 
   def process(sc: SparkContext, ss: SparkSession): Unit = {
 
@@ -35,14 +46,14 @@ object ItemProcessor {
 
     val reconciled_item = ss.read.table("reconciled_item_1_moses").filter($"locale" === "ko_KR")
 
-    val productName = Integer.MAX_VALUE -1
-    val categoryId = Integer.MAX_VALUE -2
+    val productName = Integer.MAX_VALUE - 1
+    val categoryId = Integer.MAX_VALUE - 2
     val manufacturer = Integer.MAX_VALUE - 3
-    val brand = Integer.MAX_VALUE -4
-    val searchTag = Integer.MAX_VALUE -5
-    val barcode = Integer.MAX_VALUE -6
-    val modelNo = Integer.MAX_VALUE -7
-    val adultSold = Integer.MAX_VALUE -8
+    val brand = Integer.MAX_VALUE - 4
+    val searchTag = Integer.MAX_VALUE - 5
+    val barcode = Integer.MAX_VALUE - 6
+    val modelNo = Integer.MAX_VALUE - 7
+    val adultSold = Integer.MAX_VALUE - 8
 
     val reconciledAttributes = new StructType()
         .add("attributeValue", StringType, nullable = true)
@@ -64,22 +75,42 @@ object ItemProcessor {
         .filter($"key" === brand || $"key" === productName)
         .withColumn("productName", when($"key" === productName, $"value.attributeValue"))
         .withColumn("brand", when($"key" === brand, $"value.attributeValue"))
-        .drop($"value").groupBy($"itemId",$"locale")
+        .drop($"value").groupBy($"itemId", $"locale")
         .agg(
           max($"productName").as("productName")
           , max($"brand").as("brand")
         )
 
-    parsed_reconciled_item.show()
 
-    parsed_reconciled_item.join(items, parsed_reconciled_item("itemId") === items("itemId"), "inner").
+    /*parsed_reconciled_item.join(items, parsed_reconciled_item("itemId") === items("itemId"), "inner").
         join(displaycode, items("productId") === displaycode("displayItemId"), "inner").select(
       parsed_reconciled_item("itemid"), parsed_reconciled_item("productName"), parsed_reconciled_item("brand"),
       items("productid"), displaycode("displaycategorycode")
-    ).show()
+    ).repartition(10).foreachPartition(
+      iterator => {
+        val list = iterator.toList
+        list.sliding(200, 200).foreach(block => {
+          {
+            block.foreach(row => parseAndExtract(row))
+          }
+        }
+        )
+      })*/
 
+    val brandFinalSource = parsed_reconciled_item.join(items, parsed_reconciled_item("itemId") === items("itemId"), "inner").
+        join(displaycode, items("productId") === displaycode("displayItemId"), "inner").orderBy(displaycode("displayCategoryCode")).select(
+      parsed_reconciled_item("itemId"), parsed_reconciled_item("productName"), parsed_reconciled_item("brand"),
+      items("productId"), displaycode("displayCategoryCode")
+    )
 
+    brandFinalSource.show()
 
+    brandFinalSource.rdd.map(parseAndExtract(_)).toDF("itemid", "brandid", "productid", "categorycode", "originalbrand").
+        write
+        .format("org.apache.spark.sql.cassandra")
+        .options(Map("keyspace" -> "buyboxtest", "table" -> "item_brand"))
+        .mode(SaveMode.Append)
+        .save()
 
 
 
@@ -147,7 +178,11 @@ object ItemProcessor {
         .mode(SaveMode.Append)
         .save()*/
 
-    /*vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
+    /*val vendor_items = ss.read.table("buyboxtest.vendor_items").filter("vendorid = 'A00010029'")
+
+    val vendors = ss.read.table("buyboxtest.vendors")
+
+    vendor_items.join(vendors, vendor_items("vendorid") === vendors("vendorid"), "inner").
         select(
           vendor_items("vendoritemid"),
           vendor_items("itemid"),
@@ -160,13 +195,6 @@ object ItemProcessor {
         .mode(SaveMode.Append)
         .save()*/
 
-  }
-
-  def printVendorItem(row: Row): Unit = {
-      println(row.getAs[Long]("vendoritemid").toString, row.getAs[Long]("itemid").toString,
-        row.getAs[Long]("vendorid").toString, row.getAs[Long]("banned").toString)
-      println ("subline====" + TaskContext.get.partitionId())
-      Thread.sleep(1000)
   }
 
 
