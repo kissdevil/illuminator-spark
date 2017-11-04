@@ -1,6 +1,6 @@
 package com.steve.datanorm.service
 
-import com.steve.datanorm.writer.DatanormWriter
+import com.steve.datanorm.writer.DataNormWriter
 import org.apache.spark.sql._
 
 /**
@@ -9,6 +9,6 @@ import org.apache.spark.sql._
   */
 trait WriterService {
 
-  this: DatanormWriter => def write(dataFrame: DataFrame): Unit = write(dataFrame)
+  this: DataNormWriter => def write(dataFrame: DataFrame): Unit = write(dataFrame)
 }
 

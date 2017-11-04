@@ -6,7 +6,7 @@ import org.apache.spark.sql.{DataFrame, SaveMode}
   * @author stevexu
   * @Since 11/4/17
   */
-trait CassandraDatanormWriter extends DatanormWriter{
+trait CassandraDatanormWriter extends DataNormWriter{
 
   override def write(dataFrame: DataFrame): Unit = {
     dataFrame.

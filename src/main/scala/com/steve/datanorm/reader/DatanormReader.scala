@@ -6,8 +6,8 @@ import org.apache.spark.sql.SparkSession
   * @author stevexu
   * @Since 11/4/17
   */
-trait DatanormReader[A]{
+trait DataNormReader[A]{
 
-  def read(session: SparkSession): A
+  def read(): A
 
 }

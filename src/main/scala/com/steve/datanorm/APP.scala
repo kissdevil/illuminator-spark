@@ -9,10 +9,6 @@ import org.apache.spark.{SparkConf, SparkContext}
   */
 trait App {
 
-  val session = SparkSession.builder().appName("BrandNorm").master("local[*]")
-      .config("spark.cassandra.connection.host", "127.0.0.1")
-      .config("spark.cassandra.connection.port", "9042")
-      .enableHiveSupport()
-      .getOrCreate();
+  
 
 }

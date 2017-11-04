@@ -1,6 +1,6 @@
 package com.steve.datanorm.service
 
-import com.steve.datanorm.reader.DatanormReader
+import com.steve.datanorm.reader.DataNormReader
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
@@ -9,7 +9,7 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
   */
 trait SourceLoaderService {
 
-  this: DatanormReader[DataFrame] =>
-  def load(session: SparkSession): DataFrame = read(session)
+  this: DataNormReader[DataFrame] =>
+  def load(): DataFrame = read()
 
 }
