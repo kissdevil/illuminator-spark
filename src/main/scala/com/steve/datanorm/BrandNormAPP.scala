@@ -1,7 +1,7 @@
 package com.steve.datanorm
 
 import com.steve.datanorm.flow.BrandNormFlow
-import com.steve.datanorm.reader.DatanormMosesReader
+import com.steve.datanorm.reader.DataNormMosesReader
 import com.steve.datanorm.service.SourceLoaderService
 
 /**
@@ -10,13 +10,13 @@ import com.steve.datanorm.service.SourceLoaderService
   */
 object BrandNormApp extends App{
 
-  object BrandNormSourceLoader extends SourceLoaderService with DatanormMosesReader
+  object BrandNormSourceLoader extends SourceLoaderService with DataNormMosesReader
 
   def main(args: Array[String]) {
 
     println("== start brand extraction job ==")
 
-    BrandNormFlow.process(session)
+    BrandNormFlow.process()
   }
 
 }
