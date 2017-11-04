@@ -1,4 +1,4 @@
-package com.steve.illuminator.common
+package com.steve.datanorm.entity
 
 /**
   * @author stevexu

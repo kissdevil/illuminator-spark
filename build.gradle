@@ -16,12 +16,12 @@ repositories {
 }*/
 
 dependencies {
-	compile 'org.apache.spark:spark-core_2.11:2.2.0', {
+	compile 'org.apache.spark:spark-core_2.11:2.1.0', {
 		ext {
 			fatJarExclude = true
 		}
 	}
-	compile 'org.apache.spark:spark-sql_2.11:2.2.0', {
+	compile 'org.apache.spark:spark-sql_2.11:2.1.0', {
 		ext {
 			fatJarExclude = true
 		}

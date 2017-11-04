@@ -22,8 +22,8 @@ object InitializeJob extends CommonCassandraJob {
   }
 
   def init(args: Array[String]): Unit = {
-    RedisService.getInstance().initJedisSentinelPool(config);
-    println(getDictMap)
+    //RedisService.getInstance().initJedisSentinelPool(config);
+    //println(getDictMap)
   }
 
   def getDictMap(): Map[String,String] = {

@@ -7,6 +7,7 @@ import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisSentinelPool;
 import redis.clients.jedis.exceptions.JedisException;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +50,9 @@ public class DictionaryService {
         return null;
     }
 
+    public static void main(String args[]){
+        System.out.println(new Date(1508209880000L));
+    }
 
 
 }

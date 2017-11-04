@@ -3,7 +3,7 @@ package com.steve.illuminator.processor
 import org.apache.spark.{SparkContext, TaskContext}
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.writer.SqlRowWriter
-import com.steve.illuminator.common.ItemBrand
+import com.steve.datanorm.entity.ItemBrand
 import com.steve.illuminator.dictionary.DictionaryService
 import org.apache.spark.sql.{Row, SaveMode, SparkSession}
 import org.apache.spark.sql.functions._
@@ -26,7 +26,7 @@ object ItemProcessor {
 
   def parseAndExtract(row: Row): ItemBrand = {
     val categoryCode = row.getAs[Long]("displayCategoryCode")
-    val brand = DictionaryService.getBrandByCategory(categoryCode)
+    //val brand = DictionaryService.getBrandByCategory(categoryCode)
     new ItemBrand(row.getAs[String]("itemId").toLong,
       200,
       row.getAs[String]("productId").toLong,
@@ -36,8 +36,8 @@ object ItemProcessor {
 
   def process(sc: SparkContext, ss: SparkSession): Unit = {
 
-    import ss.implicits._
 
+    import ss.implicits._
     val displaycode = ss.read.table("display_category_display_item_rel_moses")
         .filter($"displayItemType" === "PRODUCT" && $"deleted" === 0)
 
@@ -45,6 +45,8 @@ object ItemProcessor {
         .filter($"valid" === 1)
 
     val reconciled_item = ss.read.table("reconciled_item_1_moses").filter($"locale" === "ko_KR")
+
+    reconciled_item.show()
 
     val productName = Integer.MAX_VALUE - 1
     val categoryId = Integer.MAX_VALUE - 2
@@ -102,8 +104,6 @@ object ItemProcessor {
       parsed_reconciled_item("itemId"), parsed_reconciled_item("productName"), parsed_reconciled_item("brand"),
       items("productId"), displaycode("displayCategoryCode")
     )
-
-    brandFinalSource.show()
 
     brandFinalSource.rdd.map(parseAndExtract(_)).toDF("itemid", "brandid", "productid", "categorycode", "originalbrand").
         write
