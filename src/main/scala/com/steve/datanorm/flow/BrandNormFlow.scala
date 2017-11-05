@@ -25,9 +25,13 @@ object BrandNormFlow {
     import sparkSession.implicits._
 
     val source = BrandNormLoaderService.read()
-    val parsed = source.rdd.map(BrandParseService.process(_)).toDF("itemid", "brandid",
+
+    val parsed = source.map(BrandParseService.process(_))
+
+    val dataFrameToWrite = parsed.toDF("itemid", "brandid",
       "productid", "categorycode", "originalbrand")
-    BrandWriterService.write(parsed)
+
+    BrandWriterService.write(dataFrameToWrite)
   }
 
 }

@@ -3,6 +3,7 @@ package com.steve.datanorm
 import com.steve.datanorm.flow.BrandNormFlow
 import com.steve.datanorm.reader.DataNormMosesReader
 import com.steve.datanorm.service.SourceLoaderService
+import com.typesafe.scalalogging.Logger
 
 /**
   * @author stevexu
@@ -10,11 +11,13 @@ import com.steve.datanorm.service.SourceLoaderService
   */
 object BrandNormApp extends App{
 
+  private[this] val logger = Logger(this.getClass)
+
   object BrandNormSourceLoader extends SourceLoaderService with DataNormMosesReader
 
   def main(args: Array[String]) {
 
-    println("== start brand extraction job ==")
+    logger.info("=== start brand extraction job ===")
 
     BrandNormFlow.process()
   }
