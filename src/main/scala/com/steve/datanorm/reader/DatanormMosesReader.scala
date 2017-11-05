@@ -65,8 +65,8 @@ trait DataNormMosesReader extends DataNormReader[DataFrame] {
         .filter($"valid" === 1)
 
     val brandFinalSource = parsed_reconciled_item.join(items, parsed_reconciled_item("itemId") === items("itemId"), "inner").
-        join(displaycode, items("productId") === displaycode("displayItemId"), "inner").orderBy(displaycode("displayCategoryCode")).select(
-      parsed_reconciled_item("itemId"), parsed_reconciled_item("productName"), parsed_reconciled_item("brand"),
+        join(displaycode, items("productId") === displaycode("displayItemId"), "inner").orderBy( displaycode("displayCategoryCode"),items("productId"))
+        .select(parsed_reconciled_item("itemId"), parsed_reconciled_item("productName"), parsed_reconciled_item("brand"),
       items("productId"), displaycode("displayCategoryCode")
     )
 

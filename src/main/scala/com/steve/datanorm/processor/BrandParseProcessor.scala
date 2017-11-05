@@ -17,6 +17,7 @@ trait BrandParseProcessor extends Processor[Row, ItemBrand] {
 
   override def process(row: Row): ItemBrand = {
     println("category:"+row.getAs[Long]("displayCategoryCode")+
+        " productid:" +row.getAs[String]("productId").toLong +
         " itemid:"+row.getAs[String]("itemId").toLong +" on partition:"+TaskContext.getPartitionId())
     val categoryCode = row.getAs[Long]("displayCategoryCode")
     val categoryBrand = RedisRepository.getCategoryBrand(categoryCode)
