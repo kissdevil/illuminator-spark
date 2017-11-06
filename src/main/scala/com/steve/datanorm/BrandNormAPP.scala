@@ -1,7 +1,7 @@
 package com.steve.datanorm
 
 import com.steve.datanorm.flow.BrandNormFlow
-import com.steve.datanorm.reader.DataNormMosesReader
+import com.steve.datanorm.reader.BrandMosesReader
 import com.steve.datanorm.service.SourceLoaderService
 import com.typesafe.scalalogging.Logger
 
@@ -13,7 +13,7 @@ object BrandNormApp extends App{
 
   private[this] val logger = Logger(this.getClass)
 
-  object BrandNormSourceLoader extends SourceLoaderService with DataNormMosesReader
+  object BrandNormSourceLoader extends SourceLoaderService with BrandMosesReader
 
   def main(args: Array[String]) {
 

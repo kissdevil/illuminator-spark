@@ -13,11 +13,9 @@ import com.steve.datanorm.cache.dictionary.entity.RedisCategoryBrand
   */
 object RedisRepository {
 
-  private[this] val logger = Logger(this.getClass)
+  val map = scala.collection.mutable.HashMap.empty[String, RedisCategoryBrand]
 
-  val map = scala.collection.mutable.HashMap.empty[Long, RedisCategoryBrand]
-
-  def getCategoryBrand(category: Long): RedisCategoryBrand = {
+  def getCategoryBrand(category: String): RedisCategoryBrand = {
     map.get(category) match {
       case Some(s) => {
         return s
@@ -47,6 +45,11 @@ object RedisRepository {
     }
     return null
   }
+
+  def getCategoryBrand(categoryCodes: Array[String]): Array[RedisCategoryBrand] = {
+    categoryCodes.map(getCategoryBrand(_))
+  }
+
 }
 
 

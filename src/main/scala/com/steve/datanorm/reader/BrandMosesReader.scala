@@ -10,7 +10,7 @@ import org.apache.spark.sql.types.{MapType, _}
   * @author stevexu
   * @Since 11/4/17
   */
-trait DataNormMosesReader extends DataNormReader[DataFrame] {
+trait BrandMosesReader extends DataSetReader[DataFrame] {
 
   override def read(): DataFrame = {
 
@@ -60,15 +60,18 @@ trait DataNormMosesReader extends DataNormReader[DataFrame] {
 
     val displaycode = HiveTable.load(HiveTable.MOSES_DISPLAY_CATEGORY_CODE)
         .filter($"displayItemType" === "PRODUCT" && $"deleted" === 0)
+        .groupBy($"displayItemId")
+        .agg(concat_ws(",", collect_list($"displayCategoryCode")).alias("category"))
+
 
     val items = HiveTable.load(HiveTable.MOSES_ITEM)
         .filter($"valid" === 1)
 
     val brandFinalSource = parsed_reconciled_item.join(items, parsed_reconciled_item("itemId") === items("itemId"), "inner").
-        join(displaycode, items("productId") === displaycode("displayItemId"), "inner").orderBy( displaycode("displayCategoryCode"),items("productId"))
+        join(displaycode, items("productId") === displaycode("displayItemId"), "inner").orderBy(displaycode("category"), items("productId"))
         .select(parsed_reconciled_item("itemId"), parsed_reconciled_item("productName"), parsed_reconciled_item("brand"),
-      items("productId"), displaycode("displayCategoryCode")
-    )
+          items("productId"), displaycode("category")
+        )
 
     brandFinalSource
   }

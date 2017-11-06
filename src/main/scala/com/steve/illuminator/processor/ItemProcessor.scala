@@ -30,7 +30,7 @@ object ItemProcessor {
     new ItemBrand(row.getAs[String]("itemId").toLong,
       200,
       row.getAs[String]("productId").toLong,
-      row.getAs[Long]("displayCategoryCode"),
+      row.getAs[String]("displayCategoryCode"),
       row.getAs[String]("brand"))
   }
 
