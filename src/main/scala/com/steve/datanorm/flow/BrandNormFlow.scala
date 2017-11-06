@@ -4,7 +4,7 @@ import com.steve.datanorm.GlobalContext
 import com.steve.datanorm.processor.{BrandParseProcessor, Processor}
 import com.steve.datanorm.reader.BrandMosesReader
 import com.steve.datanorm.service.{ProcessorService, SourceLoaderService, WriterService}
-import com.steve.datanorm.writer.CassandraDatanormWriter
+import com.steve.datanorm.writer.CassandraDatasetWriter
 import org.apache.spark.sql.{Row, SaveMode, SparkSession}
 
 /**
@@ -17,7 +17,7 @@ object BrandNormFlow {
 
   object BrandParseService extends ProcessorService with BrandParseProcessor
 
-  object BrandWriterService extends WriterService with CassandraDatanormWriter
+  object BrandWriterService extends WriterService with CassandraDatasetWriter
 
 
   def process(): Unit = {
