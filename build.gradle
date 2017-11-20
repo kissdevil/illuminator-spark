@@ -54,6 +54,8 @@ dependencies {
 
 	compile 'mysql:mysql-connector-java:5.1.16'
 
+	compile 'com.twitter.penguin:korean-text:4.4'
+
 	testCompile 'org.slf4j:slf4j-simple:1.7.25'
 }
 
