@@ -22,26 +22,27 @@ package com.steve.illuminator.tokenizer
  * limitations under the License.
  */
 
+
 import com.twitter.penguin.korean.TwitterKoreanProcessor
 import com.twitter.penguin.korean.tokenizer.KoreanTokenizer.KoreanToken
-import org.apache.commons.lang3.time.StopWatch
+import org.apache.commons.lang3.StringUtils
 
 object ScalaTwitterKoreanTextExample {
   def main(args: Array[String]) {
 
-    val text = "STO 애플월리 투명하드케이스 - 아이폰5/5S"
+    val text = "코데즈컴바인 이너웨어(마리오)베이직 남성 런닝 CAARN244 BK"
 
     // Normalize
     val normalized: CharSequence = TwitterKoreanProcessor.normalize(text)
     println(normalized)
     // 한국어를 처리하는 예시입니다ㅋㅋ #한국어
-
-
     // Tokenize
     val tokens: Seq[KoreanToken] = TwitterKoreanProcessor.tokenize(normalized)
     println(tokens)
     println(TwitterKoreanProcessor.tokensToStrings(tokens))
     // List(한국어(Noun: 0, 3), 를(Josa: 3, 1),  (Space: 4, 1), 처리(Noun: 5, 2), 하는(Verb: 7, 2),  (Space: 9, 1), 예시(Noun: 10, 2), 입니(Adjective: 12, 2), 다(Eomi: 14, 1), ㅋㅋ(KoreanParticle: 15, 2),  (Space: 17, 1), #한국어(Hashtag: 18, 4))
+
+    val uri = "s3://s3-cdp-dev-hive/temp/brand_norm/"
 
 
     /*  // Stemming
@@ -55,5 +56,7 @@ object ScalaTwitterKoreanTextExample {
       println(phrases)*/
     // List(한국어(Noun: 0, 3), 처리(Noun: 5, 2), 처리하는 예시(Noun: 5, 7), 예시(Noun: 10, 2), #한국어(Hashtag: 18, 4))
   }
+
+
 }
 
