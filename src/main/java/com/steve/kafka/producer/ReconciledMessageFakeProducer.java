@@ -57,7 +57,6 @@ public class ReconciledMessageFakeProducer {
                 });
                 logger.info("finish send itemId:" + itemId);
             }
-            //Thread.sleep(1000 * 1);
         }
         producer.close();
     }

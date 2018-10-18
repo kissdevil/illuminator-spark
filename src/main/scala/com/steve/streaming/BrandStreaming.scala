@@ -5,7 +5,7 @@ import java.util.Arrays
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.{SparkConf, SparkContext, SparkFiles}
 import org.apache.spark.streaming.kafka010._
 
 import scala.collection.JavaConversions
@@ -45,21 +45,6 @@ object BrandStreaming {
 
       )
 
-    // now, whenever this Kafka stream produces data the resulting RDD will be printed
-    /* kafkaStream.foreachRDD(r => {
-       r.foreach(s => println(s))
-       if (r.count() > 0) {
-         // let's see how many partitions the resulting RDD has -- notice that it has nothing
-         // to do with the number of partitions in the RDD used to publish the data (4), nor
-         // the number of partitions of the topic (which also happens to be four.)
-         println("*** " + r.getNumPartitions + " partitions")
-         r.glom().foreach(a => println("*** partition size = " + a.size))
-       }
-       println("finish, starting to commit")
-       val offsetRanges = r.asInstanceOf[HasOffsetRanges].offsetRanges
-       kafkaStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
-     })
- */
     streaming.foreachRDD(rdd => {
       if (rdd.count() > 0) {
         // let's see how many partitions the resulting RDD has -- notice that it has nothing
