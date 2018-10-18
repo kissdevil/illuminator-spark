@@ -20,8 +20,9 @@ object BrandStreaming {
   def main(args: Array[String]): Unit = {
     val kafkaParams = collection.mutable.Map[String, Object]()
     kafkaParams += (ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG -> "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095")
-    kafkaParams += (ConsumerConfig.GROUP_ID_CONFIG -> "brandstreaming")
+    kafkaParams += (ConsumerConfig.GROUP_ID_CONFIG -> "brandstreaminggroup")
     kafkaParams += (ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "false")
+    //kafkaParams += (ConsumerConfig.AUTO_OFFSET_RESET_CONFIG -> "none")
     kafkaParams += (ConsumerConfig.MAX_POLL_RECORDS_CONFIG -> "1000")
     kafkaParams += (ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringDeserializer")
     kafkaParams += (ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[com.steve.deserializer.ReconciledMessageDeserializer])
@@ -45,20 +46,20 @@ object BrandStreaming {
       )
 
     // now, whenever this Kafka stream produces data the resulting RDD will be printed
-   /* kafkaStream.foreachRDD(r => {
-      r.foreach(s => println(s))
-      if (r.count() > 0) {
-        // let's see how many partitions the resulting RDD has -- notice that it has nothing
-        // to do with the number of partitions in the RDD used to publish the data (4), nor
-        // the number of partitions of the topic (which also happens to be four.)
-        println("*** " + r.getNumPartitions + " partitions")
-        r.glom().foreach(a => println("*** partition size = " + a.size))
-      }
-      println("finish, starting to commit")
-      val offsetRanges = r.asInstanceOf[HasOffsetRanges].offsetRanges
-      kafkaStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
-    })
-*/
+    /* kafkaStream.foreachRDD(r => {
+       r.foreach(s => println(s))
+       if (r.count() > 0) {
+         // let's see how many partitions the resulting RDD has -- notice that it has nothing
+         // to do with the number of partitions in the RDD used to publish the data (4), nor
+         // the number of partitions of the topic (which also happens to be four.)
+         println("*** " + r.getNumPartitions + " partitions")
+         r.glom().foreach(a => println("*** partition size = " + a.size))
+       }
+       println("finish, starting to commit")
+       val offsetRanges = r.asInstanceOf[HasOffsetRanges].offsetRanges
+       kafkaStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
+     })
+ */
     streaming.foreachRDD(rdd => {
       if (rdd.count() > 0) {
         // let's see how many partitions the resulting RDD has -- notice that it has nothing
@@ -75,12 +76,17 @@ object BrandStreaming {
 
       val converted = rdd.map(rdd => rdd.value())
       val df = converted.toDF()
-
-      //print("df has"+df.g)
+      print("ds has " + df.rdd.getNumPartitions + " partitions")
+      df.foreach(
+        msg => {
+          println("start executing:" + msg)
+          Thread.sleep(1000 * 50)
+        })
       df.show()
       println("finish, starting to commit")
       streaming.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
     })
+
 
     ssc.start()
 
