@@ -79,8 +79,8 @@ object BrandStreaming {
       print("ds has " + df.rdd.getNumPartitions + " partitions")
       df.foreach(
         msg => {
-          println("start executing:" + msg)
-          Thread.sleep(1000 * 50)
+          println("start executing:" + msg + ", executing thread:"+Thread.currentThread().getId)
+          Thread.sleep(1000)
         })
       df.show()
       println("finish, starting to commit")

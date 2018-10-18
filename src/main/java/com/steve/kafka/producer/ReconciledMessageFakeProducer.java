@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Properties;
 
 /**
@@ -42,18 +43,21 @@ public class ReconciledMessageFakeProducer {
     }
 
     public static void sendBatch(Producer<String, ReconciledMessage> producer, String topic) throws InterruptedException {
-        for (int round = 1; round <= 2; round++) {
-            for (int i = 1; i <= 2; i++) {
+        for (int round = 1; round <= 10; round++) {
+            for (int i = 1; i <= 10; i++) {
+                //Long itemId = Long.valueOf(round - 1) * 10 + i;
+                Long itemId = Long.valueOf(round - 1) * 10;
                 ProducerRecord<String, ReconciledMessage> message = new ProducerRecord<>(topic, String.valueOf(i),
-                                                                                         new ReconciledMessage(i, "SK-II sk ii 중반 기적의 본질, 1.7 온스, 단일상품", "sk2", "56112", "other manufacturer"));
+                              new ReconciledMessage(itemId, "SK-II sk ii 중반 기적의 본질, 1.7 온스, 단일상품",
+                                                    "sk2", "56112", "other manufacturer", new Date().getTime()));
                 producer.send(message, (RecordMetadata recordMetadata, Exception e) -> {
                     if (e != null) {
                         logger.error("error while send to kafka, itemid:" + message.value().getItemId(), e);
                     }
                 });
+                logger.info("finish send itemId:" + itemId);
             }
             //Thread.sleep(1000 * 1);
-            logger.info("finish send batch:" + round);
         }
         producer.close();
     }

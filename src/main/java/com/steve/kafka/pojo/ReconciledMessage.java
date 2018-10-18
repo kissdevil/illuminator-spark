@@ -8,7 +8,7 @@ import java.io.Serializable;
  */
 public class ReconciledMessage implements Serializable {
 
-    private Integer itemId;
+    private Long itemId;
 
     private String title;
 
@@ -18,11 +18,13 @@ public class ReconciledMessage implements Serializable {
 
     private String manufacturer;
 
-    public Integer getItemId() {
+    private long timestamp;
+
+    public Long getItemId() {
         return itemId;
     }
 
-    public void setItemId(Integer itemId) {
+    public void setItemId(Long itemId) {
         this.itemId = itemId;
     }
 
@@ -62,12 +64,29 @@ public class ReconciledMessage implements Serializable {
 
     }
 
-    public ReconciledMessage(Integer itemId, String title, String originalBrand, String originalCategories, String manufacturer) {
+    public ReconciledMessage(Long itemId, String title, String originalBrand, String originalCategories, String manufacturer, long timestamp) {
         this.itemId = itemId;
         this.title = title;
         this.originalBrand = originalBrand;
         this.originalCategories = originalCategories;
         this.manufacturer = manufacturer;
+        this.timestamp = timestamp;
+    }
+
+    public ReconciledMessage(Long itemId, String title, String originalBrand, String originalCategories, String manufacturer) {
+        this.itemId = itemId;
+        this.title = title;
+        this.originalBrand = originalBrand;
+        this.originalCategories = originalCategories;
+        this.manufacturer = manufacturer;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
     }
 
     @Override

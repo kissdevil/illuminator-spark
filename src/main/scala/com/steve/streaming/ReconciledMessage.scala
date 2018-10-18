@@ -7,5 +7,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
   * @since 10/15/18
   */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-case class ReconciledMessage(itemId: Int, title: String, originalBrand: String,
-                             originalCategories: String, manufacturer: String)
+case class ReconciledMessage(itemId: Long, title: String, originalBrand: String,
+                             originalCategories: String, manufacturer: String,
+                             timeStamp: Long)
