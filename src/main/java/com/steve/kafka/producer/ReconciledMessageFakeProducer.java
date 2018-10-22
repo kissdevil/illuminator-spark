@@ -43,8 +43,8 @@ public class ReconciledMessageFakeProducer {
     }
 
     public static void sendBatch(Producer<String, ReconciledMessage> producer, String topic) throws InterruptedException {
-        for (int round = 1; round <= 10; round++) {
-            for (int i = 1; i <= 10; i++) {
+        for (int round = 1; round <= 1000; round++) {
+            for (int i = 1; i <= 100; i++) {
                 //Long itemId = Long.valueOf(round - 1) * 10 + i;
                 Long itemId = Long.valueOf(round - 1) * 10;
                 ProducerRecord<String, ReconciledMessage> message = new ProducerRecord<>(topic, String.valueOf(i),
