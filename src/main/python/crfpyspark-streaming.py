@@ -5,6 +5,7 @@
 
 import json
 import regex
+import traceback
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 from pyspark import SparkConf, SparkContext, SQLContext
@@ -16,7 +17,7 @@ from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 THREDSHOLD = 0.8
 
-interval = 60
+interval = 30
 
 topic_name = "brandstreaming"
 broker_list = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
@@ -30,6 +31,8 @@ sc.addFile('hdfs:///data/brand_dict.txt')
 sc.addFile('hdfs:///data/part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro')
 
 spark = SparkSession(sc)
+
+from crfTaggerManager import extract_features
 
 # remove special characters; normalize synonyms by using current brand dictionary
 pattern = regex.compile("[^\p{L}\p{N}'.]")
@@ -119,24 +122,33 @@ def get_zookeeper_instance():
 def read_offsets(zk, topics):
     from pyspark.streaming.kafka import TopicAndPartition
     topic_array = topics.split(",")
-    from_offsets = {}
-    for topic in topic_array:
-        print(topic)
-        for partition in zk.get_children(f'/consumers/{topic}'):
-            topic_partion = TopicAndPartition(topic, int(partition))
-            offset = int(zk.get(f'/consumers/{topic}/{partition}')[0])
-            from_offsets[topic_partion] = offset
+    from_offsets={}
+    try:
+        for topic in topic_array:
+            print(topic)
+            for partition in zk.get_children(f'/consumers/{topic}'):
+                topic_partion = TopicAndPartition(topic, int(partition))
+                offset = int(zk.get(f'/consumers/{topic}/{partition}')[0])
+                from_offsets[topic_partion] = offset
+    except Exception as e:
+        print("fetch offset from zookeeper error, will skip this batch:"+str(e))
+        print(traceback.format_exc())
     print(from_offsets)
     return from_offsets
 
+
 def save_offsets(rdd):
     zk = get_zookeeper_instance()
-    for offset in rdd.offsetRanges():
-        path = f"/consumers/{offset.topic}/{offset.partition}"
-        print(path)
-        print(offset.untilOffset)
-        zk.ensure_path(path)
-        zk.set(path, str(offset.untilOffset).encode())
+    try:
+        for offset in rdd.offsetRanges():
+            path = f"/consumers/{offset.topic}/{offset.partition}"
+            print(path)
+            print(offset.untilOffset)
+            zk.ensure_path(path)
+            zk.set(path, str(offset.untilOffset).encode())
+    except Exception as e:
+        print("save offset from zookeeper error:"+str(e))
+        print(traceback.format_exc())
 
 schema = StructType(
     [
@@ -162,7 +174,6 @@ def process_group(rdd):
 
 
 def handle(dataDFRaw):
-    from crfTaggerManager import extract_features
     clean_func = udf(cleanSpecialChar, StringType())
     dataDFRaw = dataDFRaw.withColumn('productNameToken', clean_func('title'))
 
@@ -179,12 +190,9 @@ def handle(dataDFRaw):
     udf_ner_brand = udf(get_ner_brand, StringType())
     ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('productNameTokenNorm',
                                                                          'feature.brand_signal','feature.probability'))
-    ner_brand_df.select('productNameTokenNorm','feature.brand_signal','feature.probability','nerBrand').show(200, False)
-
     udf_in_dict = udf(is_brand_in_dict, BooleanType())
     ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand'))
 
-    ner_brand_df.select('productNameTokenNorm','feature.brand_signal','feature.probability','nerBrand','nerBrandInDict').show(200, False)
     return ner_brand_df
 
 
