@@ -164,7 +164,7 @@ schema = StructType(
 def process_group(rdd):
     #processed_rdd = rdd.foreach(process)
     if rdd.count() > 0:
-        print("rdd has " + str(rdd.getNumPartitions) + " partitions")
+        print("rdd has " + str(rdd.getNumPartitions()) + " partitions")
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
         deseralizedDf.show(200, False)

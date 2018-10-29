@@ -44,15 +44,23 @@ public class ReconciledMessageFakeProducer {
 
     public static void sendBatch(Producer<String, ReconciledMessage> producer, String topic) throws InterruptedException {
         for (int round = 1; round <= 100; round++) {
-            for (int i = 1; i <= 100; i++) {
+            for (int i = 1; i <= 50; i++) {
                 //Long itemId = Long.valueOf(round - 1) * 10 + i;
                 Long itemId = Long.valueOf(round - 1) * 10;
-                ProducerRecord<String, ReconciledMessage> message = new ProducerRecord<>(topic, String.valueOf(i),
+                ProducerRecord<String, ReconciledMessage> message = new ProducerRecord<>(topic, String.valueOf(itemId),
                               new ReconciledMessage(itemId, "SK-II sk ii 중반 기적의 본질, 1.7 온스, 단일상품",
                                                     "sk2", "56112", "other manufacturer", new Date().getTime()));
                 producer.send(message, (RecordMetadata recordMetadata, Exception e) -> {
                     if (e != null) {
                         logger.error("error while send to kafka, itemid:" + message.value().getItemId(), e);
+                    }
+                });
+                ProducerRecord<String, ReconciledMessage> message2 = new ProducerRecord<>(topic, String.valueOf(itemId),
+                         new ReconciledMessage(itemId, "헬로키티 욕실화 얼굴몰드형 랜덤 발송",
+                                                    "etc", "69182", "other manufacturer", new Date().getTime()));
+                producer.send(message2, (RecordMetadata recordMetadata, Exception e) -> {
+                    if (e != null) {
+                        logger.error("error while send to kafka, itemid:" + message2.value().getItemId(), e);
                     }
                 });
             }
