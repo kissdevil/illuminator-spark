@@ -2,15 +2,17 @@ package com.steve.streaming
 
 import java.util.Arrays
 
-import com.steve.kafka.serialize.ReconciledMessageDeSerializer
+import com.steve.kafka.pojo.CqiMessage
+import com.steve.kafka.serialize.{CqiMessageSerializer, ReconciledMessageDeSerializer, ReconciledMessageSerializer}
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext, SparkFiles}
 import org.apache.spark.streaming.kafka010._
 import org.slf4j.{Logger, LoggerFactory}
 
-import scala.collection.JavaConversions
+import scala.collection.JavaConversions._
 
 
 /**
@@ -44,7 +46,7 @@ object BrandStreaming {
         LocationStrategies.PreferConsistent,
         ConsumerStrategies.Subscribe[String, ReconciledMessage](
           Arrays.asList(topic),
-          JavaConversions.mapAsJavaMap(kafkaParams)
+          mapAsJavaMap(kafkaParams)
         )
 
       )
@@ -64,27 +66,36 @@ object BrandStreaming {
       import sparkSession.implicits._
 
       val converted = rdd.map(rdd => rdd.value())
-      val df = converted.toDF()
-      logger.info("ds has " + df.rdd.getNumPartitions + " partitions")
-      logger.info("df has rows:" + df.count())
-      df.foreach(
+      val ds = converted.toDS()
+      logger.info("ds has " + ds.rdd.getNumPartitions + " partitions")
+      logger.info("df has rows:" + ds.count())
+
+      val props = collection.mutable.Map[String, Object]()
+      props +=(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095")
+      props +=(ProducerConfig.ACKS_CONFIG -> "1")
+      props +=(ProducerConfig.RETRIES_CONFIG -> "0")
+      props +=(ProducerConfig.BATCH_SIZE_CONFIG -> "16384")
+      props +=(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringSerializer")
+      props +=(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[CqiMessageSerializer])
+
+      val kafkaSink = sparkContext.broadcast(KafkaSink(props))
+      ds.foreach(
         msg => {
-          try{
-            logger.info("start executing:" + msg + ", executing thread:"+Thread.currentThread().getId)
-            //Thread.sleep(1000)
+          try {
+            logger.info("start executing:" + msg + ", executing thread:" + Thread.currentThread().getId)
+            Thread.sleep(10)
+            kafkaSink.value.send("cqiBrandChange", String.valueOf(msg.itemId), new CqiMessage(msg.itemId, 1L))
           }
           catch {
-            case e: Exception => logger.error("processing message error, msg:"+msg, e)
+            case e: Exception => logger.error("processing message error, msg:" + msg, e)
           }
         })
-      df.show()
+      ds.show()
       logger.info("finish, starting to commit")
       streaming.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
     })
 
-
     ssc.start()
-
 
     try {
       ssc.awaitTermination()

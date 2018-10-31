@@ -33,7 +33,6 @@ with open(SparkFiles.get('brand_dict.txt'), 'r') as infile:
 def get_raw_df():
     with open(SparkFiles.get('part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro'), 'rb') as fo:
         reader = fastavro.reader(fo)
-        schema = reader.schema
         lst = []
         for record in reader:
             lst.append([record['item_id'], record['original_category_codes'], record['level_one_category_codes'],

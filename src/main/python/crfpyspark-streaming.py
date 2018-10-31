@@ -189,7 +189,7 @@ def handle(dataDFRaw):
 
     udf_ner_brand = udf(get_ner_brand, StringType())
     ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('productNameTokenNorm',
-                                                                         'feature.brand_signal','feature.probability'))
+                                                    'feature.brand_signal','feature.probability'))
     udf_in_dict = udf(is_brand_in_dict, BooleanType())
     ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand'))
 
