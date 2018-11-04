@@ -15,6 +15,8 @@ from pyspark import SparkFiles
 from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
+from kafka import KafkaProducer
+
 THREDSHOLD = 0.8
 
 interval = 30
@@ -33,6 +35,9 @@ sc.addFile('hdfs:///data/part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro')
 spark = SparkSession(sc)
 
 from crfTaggerManager import extract_features
+from kafkaProducer import sendData
+
+producer = KafkaProducer(bootstrap_servers=broker_list)
 
 # remove special characters; normalize synonyms by using current brand dictionary
 pattern = regex.compile("[^\p{L}\p{N}'.]")
@@ -167,10 +172,27 @@ def process_group(rdd):
         print("rdd has " + str(rdd.getNumPartitions()) + " partitions")
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
-        deseralizedDf.show(200, False)
+        deseralizedDf.show(20, False)
         finalDf = handle(deseralizedDf)
-        finalDf.show(200, False)
+        finalDf.show(20, False)
+        #records = finalDf.collect()
+        for i in range(10000):
+            data = {
+                'itemId': 1,
+                'nerBrand': 2
+            }
+            producer.send('kafkaPayloadTest', json.dumps(data).encode('utf-8'))
+        producer.flush()
     save_offsets(rdd)
+
+def send_msg(row):
+    itemId = row.itemId
+    nerBrand = row.nerBrand
+    data = {
+             'itemId': itemId,
+             'nerBrand': nerBrand
+           }
+    sendData(data)
 
 
 def handle(dataDFRaw):
@@ -189,7 +211,7 @@ def handle(dataDFRaw):
 
     udf_ner_brand = udf(get_ner_brand, StringType())
     ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('productNameTokenNorm',
-                                                    'feature.brand_signal','feature.probability'))
+                                                   'feature.brand_signal','feature.probability'))
     udf_in_dict = udf(is_brand_in_dict, BooleanType())
     ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand'))
 

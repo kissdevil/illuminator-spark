@@ -28,7 +28,7 @@ public class CqiMessageFakeConsumer {
         final List<CqiMessageConsumerTask> consumers = new ArrayList<>();
         for (int i = 1; i <= numConsumers; i++) {
             CqiMessageConsumerTask consumer = new CqiMessageConsumerTask(i, (String)properties.getProperty("cqibrandgroup"),
-                                                                                       topics, (String)properties.get("brandstreaminghosts"));
+                                             topics, (String)properties.get("brandstreaminghosts"));
             consumers.add(consumer);
             executor.submit(consumer);
         }

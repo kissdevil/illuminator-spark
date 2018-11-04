@@ -25,7 +25,7 @@ public class CqiMessageConsumerTask implements Runnable{
 
     private final int id;
 
-    private static final Logger logger = LoggerFactory.getLogger(ReconciledMessageConsumerTask.class);
+    private static final Logger logger = LoggerFactory.getLogger(CqiMessageConsumerTask.class);
 
     private int count = 0;
 

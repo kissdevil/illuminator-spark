@@ -33,7 +33,7 @@ object BrandStreaming {
     kafkaParams += (ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringDeserializer")
     kafkaParams += (ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[com.steve.deserializer.ReconciledMessageDeserializer])
 
-    val conf = new SparkConf().setAppName("BrandStreaming").setMaster("local[4]")
+    val conf = new SparkConf().setAppName("BrandStreaming").setMaster("local[2]")
     val sc = new SparkContext(conf)
 
     val ssc = new StreamingContext(sc, Seconds(30))
@@ -82,8 +82,8 @@ object BrandStreaming {
       ds.foreach(
         msg => {
           try {
-            logger.info("start executing:" + msg + ", executing thread:" + Thread.currentThread().getId)
-            Thread.sleep(10)
+            //logger.info("start executing:" + msg + ", executing thread:" + Thread.currentThread().getId)
+            Thread.sleep(1)
             kafkaSink.value.send("cqiBrandChange", String.valueOf(msg.itemId), new CqiMessage(msg.itemId, 1L))
           }
           catch {
