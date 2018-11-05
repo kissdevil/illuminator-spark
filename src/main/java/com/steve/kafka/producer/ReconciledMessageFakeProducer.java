@@ -43,7 +43,7 @@ public class ReconciledMessageFakeProducer {
     }
 
     public static void sendBatch(Producer<String, ReconciledMessage> producer, String topic) throws InterruptedException {
-        for (int round = 1; round <= 100; round++) {
+        for (int round = 1; round <= 1000; round++) {
             for (int i = 1; i <= 50; i++) {
                 //Long itemId = Long.valueOf(round - 1) * 10 + i;
                 Long itemId = Long.valueOf(round - 1) * 10;

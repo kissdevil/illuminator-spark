@@ -101,11 +101,11 @@ def get_ner_brand(titleToken, brand_signal, probability):
     terms = titleToken.split()
     ner_brand = ''
     if probability >= THREDSHOLD and any([t == 'b' for t in brand_signal]):
-        first_index = brand_signal.index('b') - 1
+        first_index = brand_signal.index('b')
         ner_brand = terms[first_index]
         while first_index + 1 < len(brand_signal) and brand_signal[first_index + 1] == 'i':
             ner_brand = ner_brand + ' ' + terms[first_index + 1]
-            first_brand_signal += 1
+            first_index += 1
     return ner_brand
 
 
@@ -172,17 +172,11 @@ def process_group(rdd):
         print("rdd has " + str(rdd.getNumPartitions()) + " partitions")
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
-        deseralizedDf.show(20, False)
-        finalDf = handle(deseralizedDf)
-        finalDf.show(20, False)
-        #records = finalDf.collect()
-        for i in range(10000):
-            data = {
-                'itemId': 1,
-                'nerBrand': 2
-            }
-            producer.send('kafkaPayloadTest', json.dumps(data).encode('utf-8'))
-        producer.flush()
+        #deseralizedDf.show(1000000, False)
+        finalDf = handle(deseralizedDf).select("itemId","nerBrand","nerBrandInDict")
+        finalDf.show(100000, False)
+        #finalDf.rdd.foreach(send_msg)
+        #calculate_thoughput(python_kafka_producer_performance())
     save_offsets(rdd)
 
 def send_msg(row):
@@ -199,11 +193,12 @@ def handle(dataDFRaw):
     clean_func = udf(cleanSpecialChar, StringType())
     dataDFRaw = dataDFRaw.withColumn('productNameToken', clean_func('title'))
 
+
     norm_func = udf(title_brand_normalize, StringType())
     dataDFRaw = dataDFRaw.withColumn('productNameTokenNorm', norm_func('productNameToken'))
 
     schema = StructType([
-        StructField('brand_signal', StringType()),
+        StructField('brand_signal', ArrayType(StringType())),
         StructField('probability', FloatType())
     ])
     udf_tagger_feature = udf(extract_features, schema)
