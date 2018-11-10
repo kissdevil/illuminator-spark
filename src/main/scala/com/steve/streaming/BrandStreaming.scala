@@ -31,7 +31,7 @@ object BrandStreaming {
     //kafkaParams += (ConsumerConfig.AUTO_OFFSET_RESET_CONFIG -> "none")
     //kafkaParams += (ConsumerConfig.MAX_POLL_RECORDS_CONFIG -> "1000")
     kafkaParams += (ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringDeserializer")
-    kafkaParams += (ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[com.steve.deserializer.ReconciledMessageDeserializer])
+    kafkaParams += (ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[com.steve.kafka.serialize.ReconciledMessageAvroDeserializer])
 
     val conf = new SparkConf().setAppName("BrandStreaming").setMaster("local[2]")
     val sc = new SparkContext(conf)
@@ -44,7 +44,7 @@ object BrandStreaming {
       KafkaUtils.createDirectStream(
         ssc,
         LocationStrategies.PreferConsistent,
-        ConsumerStrategies.Subscribe[String, ReconciledMessage](
+        ConsumerStrategies.Subscribe[String, CqiBrandSourceStreamingUpdate](
           Arrays.asList(topic),
           mapAsJavaMap(kafkaParams)
         )
@@ -65,24 +65,23 @@ object BrandStreaming {
       val sparkSession = SparkSession.builder.config(sparkContext.getConf).getOrCreate()
       import sparkSession.implicits._
 
-      val converted = rdd.map(rdd => rdd.value())
-      val ds = converted.toDS()
+      val ds = rdd.map(rdd => rdd.value()).toDS()
       logger.info("ds has " + ds.rdd.getNumPartitions + " partitions")
       logger.info("df has rows:" + ds.count())
 
       val props = collection.mutable.Map[String, Object]()
-      props +=(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095")
-      props +=(ProducerConfig.ACKS_CONFIG -> "1")
-      props +=(ProducerConfig.RETRIES_CONFIG -> "0")
-      props +=(ProducerConfig.BATCH_SIZE_CONFIG -> "16384")
-      props +=(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringSerializer")
-      props +=(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[CqiMessageSerializer])
+      props += (ProducerConfig.BOOTSTRAP_SERVERS_CONFIG -> "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095")
+      props += (ProducerConfig.ACKS_CONFIG -> "1")
+      props += (ProducerConfig.RETRIES_CONFIG -> "0")
+      props += (ProducerConfig.BATCH_SIZE_CONFIG -> "16384")
+      props += (ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringSerializer")
+      props += (ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[CqiMessageSerializer])
 
       val kafkaSink = sparkContext.broadcast(KafkaSink(props))
       ds.foreach(
         msg => {
           try {
-            //logger.info("start executing:" + msg + ", executing thread:" + Thread.currentThread().getId)
+            logger.info("start executing:" + msg + ", executing thread:" + Thread.currentThread().getId)
             Thread.sleep(1)
             kafkaSink.value.send("cqiBrandChange", String.valueOf(msg.itemId), new CqiMessage(msg.itemId, 1L))
           }

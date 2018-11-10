@@ -16,6 +16,7 @@ from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 from kafka import KafkaProducer
+from kazoo.client import KazooClient
 
 THREDSHOLD = 0.8
 
@@ -117,8 +118,6 @@ def is_brand_in_dict(brand, brandDict=brandDictMap):
 
 
 def get_zookeeper_instance():
-    from kazoo.client import KazooClient
-
     if 'KazooSingletonInstance' not in globals():
         globals()['KazooSingletonInstance'] = KazooClient(ZOOKEEPER_SERVERS)
         globals()['KazooSingletonInstance'].start()
