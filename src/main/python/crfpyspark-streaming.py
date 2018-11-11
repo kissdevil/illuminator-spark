@@ -22,7 +22,7 @@ THREDSHOLD = 0.8
 
 interval = 30
 
-topic_name = "brandstreaming"
+topic_name = "brandstreamingpython"
 broker_list = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
 ZOOKEEPER_SERVERS = "127.0.0.1:2181"
 offsetRanges = []

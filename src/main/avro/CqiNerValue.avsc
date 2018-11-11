@@ -1,0 +1,52 @@
+{
+  "type" : "record",
+  "name" : "CqiNerValue",
+  "namespace" : "com.coupang.catalog.message.demeter.source.update.v1",
+  "fields" : [ {
+    "name" : "cqiBrandSourceUpdateValue",
+    "type" : {
+      "type" : "record",
+      "name" : "CqiBrandSourceUpdateValue",
+      "fields" : [ {
+        "name" : "itemId",
+        "type" : "long"
+      }, {
+        "name" : "productId",
+        "type" : "long"
+      }, {
+        "name" : "originalBrand",
+        "type" : "string"
+      }, {
+        "name" : "productName",
+        "type" : "string"
+      }, {
+        "name" : "manufacturer",
+        "type" : "string"
+      }, {
+        "name" : "originalCategoryCodes",
+        "type" : "string"
+      }, {
+        "name" : "cqiLevelFourCategoryCode",
+        "type" : "long"
+      }, {
+        "name" : "cqiLevelThreeCategoryCode",
+        "type" : "long"
+      }, {
+        "name" : "cqiLevelTwoCategoryCode",
+        "type" : "long"
+      }, {
+        "name" : "cqiLevelOneCategoryCode",
+        "type" : "long"
+      }, {
+        "name" : "preCqiBrand",
+        "type" : "long"
+      }, {
+        "name" : "timeStamp",
+        "type" : "long"
+      } ]
+    }
+  }, {
+    "name" : "nerBrand",
+    "type" : "string"
+  } ]
+}
