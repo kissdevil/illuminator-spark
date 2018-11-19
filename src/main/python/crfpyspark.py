@@ -18,9 +18,9 @@ THREDSHOLD = 0.8
 
 sc = SparkContext.getOrCreate()
 
-sc.addFile('hdfs:///model/crf.model.5Feat_33018Pos_11350Neg')
-sc.addFile('hdfs:///data/brand_dict.txt')
-sc.addFile('hdfs:///data/part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro')
+sc.addFile('s3://s3-cdp-prod-hive/temp/brand_norm_dictionary_dump/crf.model.5Feat_33018Pos_11350Neg')
+sc.addFile('s3://s3-cdp-prod-hive/temp/brand_norm_dictionary_dump/brand_dict.txt')
+sc.addFile('s3://s3-cdp-prod-hive/temp/brand_norm_dictionary_dump/part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro')
 #sc.addPyFile('crfTaggerManager.py')
 
 from crfTaggerManager import extract_features
@@ -31,21 +31,11 @@ with open(SparkFiles.get('brand_dict.txt'), 'r') as infile:
         brandDictMap = json.load(infile)
         
 def get_raw_df():
-    with open(SparkFiles.get('part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro'), 'rb') as fo:
-        reader = fastavro.reader(fo)
-        lst = []
-        for record in reader:
-            lst.append([record['item_id'], record['original_category_codes'], record['level_one_category_codes'],
-                        record['level_two_category_codes'], record['original_product_name'], record['original_brand']])
-        cSchema = StructType([StructField("itemId", IntegerType()),                     
-                       StructField("originalCategory",StringType()),
-                       StructField("levelOneCategory", StringType()),
-                       StructField("levelTwoCategory", StringType()),
-                       StructField("originalProductName", StringType()),
-                       StructField("originalbrand", StringType())])    
-        dataFrame = spark.createDataFrame(lst, cSchema)
-        return dataFrame
-    
+    df = spark.read.orc('s3://s3-cdp-prod-hive/temp/cqi_item_brand_field_no_extraction_ondemand/')\
+        .select('item_id','original_category_codes','level_one_category_codes','level_two_category_codes','original_product_name','original_brand')\
+        .toDF('itemId','originalCategory','levelOneCategory','levelTwoCategory','originalProductName','originalbrand')
+    return df
+
 def title_brand_normalize(string, brandDict=brandDictMap):
     stringList = string.lower().split()
     res = trigram(stringList, brandDict)
@@ -100,11 +90,14 @@ def get_ner_brand(titleToken, brand_signal, probability):
     terms = titleToken.split()
     ner_brand = ''
     if probability >= THREDSHOLD and any([t == 'b' for t in brand_signal]):
-        first_index = brand_signal.index('b')-1
+        first_index = brand_signal.index('b')
+        print('brand_signal is:'+str(brand_signal))
+        print('first_index is:'+str(first_index))
+        print('ner brand is:'+str(ner_brand))
         ner_brand = terms[first_index]
         while first_index + 1 < len(brand_signal) and brand_signal[first_index + 1] == 'i':
-                ner_brand = ner_brand + ' ' + terms[first_index + 1]
-                first_brand_signal += 1
+            ner_brand = ner_brand + ' ' + terms[first_index + 1]
+            first_index += 1
     return ner_brand
 
 def is_brand_in_dict(brand, brandDict=brandDictMap):
@@ -113,7 +106,7 @@ def is_brand_in_dict(brand, brandDict=brandDictMap):
     else:
         return brand in brandDict
         
-dataDFRaw = get_raw_df()        
+dataDFRaw = get_raw_df()
 
 # remove special characters; normalize synonyms by using current brand dictionary
 pattern = regex.compile("[^\p{L}\p{N}'.]")
@@ -125,7 +118,7 @@ norm_func = udf(title_brand_normalize, StringType())
 dataDFRaw = dataDFRaw.withColumn('productNameTokenNorm', norm_func('productNameToken')) 
 
 schema = StructType([
-    StructField('brand_signal', StringType()),
+    StructField('brand_signal', ArrayType(StringType())),
     StructField('probability', FloatType())
 ])
 udf_tagger_feature = udf(extract_features, schema)
@@ -134,16 +127,12 @@ tokenWithFeatureData = dataDFRaw.withColumn("feature", udf_tagger_feature('produ
 #      StringType()))
 #tokenWithFeatureDf = spark.read.json(tokenWithFeatureData)
 tokenWithFeatureData.printSchema()
-#tokenWithFeatureData.select('feature.brand_signal','feature.probability').show(200, False)
 
 udf_ner_brand = udf(get_ner_brand, StringType())
 ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('productNameTokenNorm',
      'feature.brand_signal','feature.probability')) 
-ner_brand_df.select('productNameTokenNorm','feature.brand_signal','feature.probability','nerBrand').show(200, False)
-
 
 udf_in_dict = udf(is_brand_in_dict, BooleanType())
 ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand')) 
 
-ner_brand_df.select('productNameTokenNorm','feature.brand_signal','feature.probability','nerBrand','nerBrandInDict').show(200, False)     
-
+ner_brand_df.write.orc("s3://catalog-quality-item-prod/ner/title/", mode="overwrite")
