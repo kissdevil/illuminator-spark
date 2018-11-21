@@ -126,7 +126,6 @@ tokenWithFeatureData = dataDFRaw.withColumn("feature", udf_tagger_feature('produ
 #tokenWithFeatureDf = spark.createDataFrame(tokenWithFeatureData, ArrayType(
 #      StringType()))
 #tokenWithFeatureDf = spark.read.json(tokenWithFeatureData)
-tokenWithFeatureData.printSchema()
 
 udf_ner_brand = udf(get_ner_brand, StringType())
 ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('productNameTokenNorm',
