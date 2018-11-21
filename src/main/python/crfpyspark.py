@@ -142,4 +142,4 @@ final_df = ner_brand_df.select('itemId','originalCategory','levelOneCategory','l
 
 final_df.show(200, False)
 
-ner_brand_df.write.orc("s3://catalog-quality-item-prod/ner/title/", mode="overwrite")
+final_df.write.orc("s3://catalog-quality-item-prod/ner/title/", mode="overwrite")
