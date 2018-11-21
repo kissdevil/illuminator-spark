@@ -14,7 +14,7 @@ from pyspark.sql.session import SparkSession
 from pyspark import SparkFiles
 
 
-THREDSHOLD = 0.8
+THREDSHOLD = 0.6
 
 sc = SparkContext.getOrCreate()
 
@@ -133,6 +133,14 @@ ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('produc
      'feature.brand_signal','feature.probability')) 
 
 udf_in_dict = udf(is_brand_in_dict, BooleanType())
-ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand')) 
+ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand'))
+
+ner_brand_df.show(200, False)
+
+final_df = ner_brand_df.select('itemId','originalCategory','levelOneCategory','levelTwoCategory','originalProductName',
+                               'originalbrand', 'productNameToken', 'productNameTokenNorm', 'feature.brand_signal',
+                               'feature.probability','nerBrand','nerBrandInDict')
+
+final_df.show(200, False)
 
 ner_brand_df.write.orc("s3://catalog-quality-item-prod/ner/title/", mode="overwrite")
