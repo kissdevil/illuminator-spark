@@ -17,16 +17,19 @@ THREDSHOLD = 0.6
 
 sc = SparkContext.getOrCreate()
 
-sc.addFile('/pang/service/airflow/artifacts/brandnorm/cqi_brand/python/crf.model.5Feat_33018Pos_11350Neg')
-sc.addFile('/pang/service/airflow/artifacts/brandnorm/cqi_brand/python/brand_dict.txt')
+sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/crf.model.5Feat_33018Pos_11350Neg')
+sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/brand_dict.txt')
 #sc.addPyFile('crfTaggerManager.py')
-
-from crfTaggerManager import extract_features
 
 spark = SparkSession(sc)
 
+print('loading brand dictionary')
 with open(SparkFiles.get('brand_dict.txt'), 'r') as infile:
         brandDictMap = json.load(infile)
+
+print('loading brand dictionary finished')
+
+from crfTaggerManager import extract_features
         
 def get_raw_df():
     df = spark.read.orc('s3://s3-cdp-prod-hive/temp/cqi_item_brand_field_no_extraction_ondemand/')\
