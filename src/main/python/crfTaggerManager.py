@@ -25,7 +25,8 @@ from pyspark import SparkFiles
 def initialBrandTagger():
     brandtagger = pycrfsuite.Tagger()
     print('initialing brandtagger')
-    brandtagger.open(SparkFiles.get('crf.model.5Feat_33018Pos_11350Neg'))
+    brandtagger.open(
+        SparkFiles.get('crf.model.5Feat_33018Pos_11350Neg'))
     return brandtagger
 
 def extract_features(termStr):

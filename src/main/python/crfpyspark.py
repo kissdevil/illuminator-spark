@@ -4,7 +4,6 @@
 # In[1]:
 
 
-import fastavro
 import json
 import regex
 from pyspark.sql.types import *
@@ -18,9 +17,8 @@ THREDSHOLD = 0.6
 
 sc = SparkContext.getOrCreate()
 
-sc.addFile('s3://s3-cdp-prod-hive/temp/brand_norm_dictionary_dump/crf.model.5Feat_33018Pos_11350Neg')
-sc.addFile('s3://s3-cdp-prod-hive/temp/brand_norm_dictionary_dump/brand_dict.txt')
-sc.addFile('s3://s3-cdp-prod-hive/temp/brand_norm_dictionary_dump/part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro')
+sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/crf.model.5Feat_33018Pos_11350Neg')
+sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/brand_dict.txt')
 #sc.addPyFile('crfTaggerManager.py')
 
 from crfTaggerManager import extract_features
