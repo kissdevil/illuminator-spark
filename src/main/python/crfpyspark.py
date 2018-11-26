@@ -15,8 +15,11 @@ from pyspark import SparkFiles
 
 THREDSHOLD = 0.6
 
-sc = SparkContext.getOrCreate()
+conf = SparkConf().setExecutorEnv('PYTHONPATH','pyspark.zip:py4j-0.10.7-src.zip')
 
+sc = SparkContext.getOrCreate(conf)
+
+print('add spark file to context')
 sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/crf.model.5Feat_33018Pos_11350Neg')
 sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/brand_dict.txt')
 #sc.addPyFile('crfTaggerManager.py')
