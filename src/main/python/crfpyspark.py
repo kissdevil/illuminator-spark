@@ -15,9 +15,7 @@ from pyspark import SparkFiles
 
 THREDSHOLD = 0.6
 
-conf = SparkConf().setExecutorEnv('PYTHONPATH','pyspark.zip:py4j-0.10.7-src.zip')
-
-sc = SparkContext.getOrCreate(conf)
+sc = SparkContext.getOrCreate()
 
 print('add spark file to context')
 sc.addFile('s3://s3-cdp-prod-airflow-dag/1.10/artifacts/brandnorm/cqi_brand/python/crf.model.5Feat_33018Pos_11350Neg')
@@ -138,12 +136,9 @@ ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('produc
 udf_in_dict = udf(is_brand_in_dict, BooleanType())
 ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand'))
 
-ner_brand_df.show(200, False)
 
 final_df = ner_brand_df.select('itemId','originalCategory','levelOneCategory','levelTwoCategory','originalProductName',
                                'originalbrand', 'productNameToken', 'productNameTokenNorm', 'feature.brand_signal',
                                'feature.probability','nerBrand','nerBrandInDict')
-
-final_df.show(200, False)
 
 final_df.write.orc("s3://catalog-quality-item-prod/ner/title/", mode="overwrite")
