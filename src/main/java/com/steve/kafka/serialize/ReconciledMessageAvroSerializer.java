@@ -1,7 +1,6 @@
 package com.steve.kafka.serialize;
 
 import com.coupang.catalog.message.avro.AvroSpecificRecordSerializer;
-import com.steve.kafka.pojo.ReconciledMessage;
 import org.apache.avro.specific.SpecificRecordBase;
 import org.apache.kafka.common.serialization.Serializer;
 

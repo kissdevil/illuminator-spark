@@ -1,6 +1,6 @@
 package com.steve.kafka.producer;
 
-import com.steve.kafka.pojo.ReconciledMessage;
+import com.steve.kafka.pojo.ReconciledBrandMessage;
 import com.steve.kafka.serialize.ReconciledMessageSerializer;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
@@ -16,7 +16,7 @@ import java.util.Properties;
  */
 public class ReconciledMessageFakeJsonProducer {
 
-    static Producer<String, ReconciledMessage> producer;
+    static Producer<String, ReconciledBrandMessage> producer;
 
     private static final Logger logger = LoggerFactory.getLogger(ReconciledMessageFakeProducer.class);
 
@@ -26,7 +26,7 @@ public class ReconciledMessageFakeJsonProducer {
         properties.load(input);
 
         initProducer(properties);
-        sendBatch(producer, properties.getProperty("brandstreamingpythontopic"));
+        sendBatch(producer, properties.getProperty("demetercqibrand"));
     }
 
     public static void initProducer(Properties properties) throws IOException {
@@ -38,26 +38,28 @@ public class ReconciledMessageFakeJsonProducer {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ReconciledMessageSerializer.class.getName());
 
-        KafkaProducer kafkaProducer = new KafkaProducer<String, ReconciledMessage>(props);
+        KafkaProducer kafkaProducer = new KafkaProducer<String, ReconciledBrandMessage>(props);
         producer = kafkaProducer;
     }
 
-    public static void sendBatch(Producer<String, ReconciledMessage> producer, String topic) throws InterruptedException {
+    public static void sendBatch(Producer<String, ReconciledBrandMessage> producer, String topic) throws InterruptedException {
         for (int round = 1; round <= 1000; round++) {
             for (int i = 1; i <= 50; i++) {
                 //Long itemId = Long.valueOf(round - 1) * 10 + i;
                 Long itemId = Long.valueOf(round - 1) * 10;
-                ProducerRecord<String, ReconciledMessage> message = new ProducerRecord<>(topic, String.valueOf(itemId),
-                                                                                         new ReconciledMessage(itemId, "SK-II sk ii 중반 기적의 본질, 1.7 온스, 단일상품",
-                                                                                                               "sk2", "56112", "other manufacturer", new Date().getTime()));
+                ProducerRecord<String, ReconciledBrandMessage> message = new ProducerRecord<>(topic, String.valueOf(itemId),
+                                 new ReconciledBrandMessage(itemId, "SK-II LXP 얼티미트 퍼펙팅 크림 50g",
+                                         "sk2", "56653", 56653L, 56649L, 56648L, 56112L, "sk-II", "에스케이투",
+                                                            new Date().getTime(),java.util.UUID.randomUUID().toString()));
                 producer.send(message, (RecordMetadata recordMetadata, Exception e) -> {
                     if (e != null) {
                         logger.error("error while send to kafka, itemid:" + message.value().getItemId(), e);
                     }
                 });
-                ProducerRecord<String, ReconciledMessage> message2 = new ProducerRecord<>(topic, String.valueOf(itemId),
-                                                                                          new ReconciledMessage(itemId, "헬로키티 욕실화 얼굴몰드형 랜덤 발송",
-                                                                                                                "etc", "69182", "other manufacturer", new Date().getTime()));
+                ProducerRecord<String, ReconciledBrandMessage> message2 = new ProducerRecord<>(topic, String.valueOf(itemId),
+                                 new ReconciledBrandMessage(itemId, "[중고명품 미스터문] MCM(엠씨엠) 1011103041506 베이지 브라운 레더 토트백",
+                                          "[중고명품 미스터문] MCM(엠씨엠)", "69284", 71945L, 69283L, 69183L, 69182L, "MCM",
+                                           "엠씨엠", new Date().getTime(),java.util.UUID.randomUUID().toString()));
                 producer.send(message2, (RecordMetadata recordMetadata, Exception e) -> {
                     if (e != null) {
                         logger.error("error while send to kafka, itemid:" + message2.value().getItemId(), e);

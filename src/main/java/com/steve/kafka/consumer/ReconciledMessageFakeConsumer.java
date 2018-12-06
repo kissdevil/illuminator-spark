@@ -21,12 +21,12 @@ public class ReconciledMessageFakeConsumer {
         Properties properties = new Properties();
         properties.load(input);
 
-        List<String> topics = Arrays.asList(properties.getProperty("brandstreamingtopic"));
+        List<String> topics = Arrays.asList(properties.getProperty("demetercqibrand"));
         ExecutorService executor = Executors.newFixedThreadPool(numConsumers);
 
         final List<ReconciledMessageConsumerTask> consumers = new ArrayList<>();
         for (int i = 1; i <= numConsumers; i++) {
-            ReconciledMessageConsumerTask consumer = new ReconciledMessageConsumerTask(i, (String)properties.getProperty("brandstreaminggroup"),
+            ReconciledMessageConsumerTask consumer = new ReconciledMessageConsumerTask(i, (String)properties.getProperty("demetercqibrandgroup"),
                                 topics, (String)properties.get("brandstreaminghosts"));
             consumers.add(consumer);
             executor.submit(consumer);

@@ -2,7 +2,7 @@ package com.steve.kafka.serialize;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.steve.kafka.pojo.ReconciledMessage;
+import com.steve.kafka.pojo.ReconciledBrandMessage;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
 
@@ -13,7 +13,7 @@ import java.util.Map;
  * @author stevexu
  * @since 10/16/18
  */
-public class ReconciledMessageSerializer implements Serializer<ReconciledMessage> {
+public class ReconciledMessageSerializer implements Serializer<ReconciledBrandMessage> {
 
     private static final String ENCODING = "UTF8";
 
@@ -25,7 +25,7 @@ public class ReconciledMessageSerializer implements Serializer<ReconciledMessage
     }
 
     @Override
-    public byte[] serialize(String s, ReconciledMessage data) {
+    public byte[] serialize(String s, ReconciledBrandMessage data) {
         if (data == null) {
             return null;
         }

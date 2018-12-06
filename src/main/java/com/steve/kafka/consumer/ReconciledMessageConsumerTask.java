@@ -1,6 +1,6 @@
 package com.steve.kafka.consumer;
 
-import com.steve.kafka.pojo.ReconciledMessage;
+import com.steve.kafka.pojo.ReconciledBrandMessage;
 import com.steve.kafka.serialize.ReconciledMessageDeSerializer;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
@@ -20,7 +20,7 @@ public class ReconciledMessageConsumerTask implements Runnable{
 
     private static List<String> topics = new ArrayList<>();
 
-    private final Consumer<String, ReconciledMessage> consumer;
+    private final Consumer<String, ReconciledBrandMessage> consumer;
 
     private final int id;
 
@@ -44,7 +44,7 @@ public class ReconciledMessageConsumerTask implements Runnable{
         this.id = id;
     }
 
-    private boolean doCommitSync(ReconciledMessage reconciledMessage) {
+    private boolean doCommitSync(ReconciledBrandMessage reconciledMessage) {
         try {
             consumer.commitSync();
             return true;
@@ -84,13 +84,13 @@ public class ReconciledMessageConsumerTask implements Runnable{
             });
 
             while (true) {
-                ConsumerRecords<String, ReconciledMessage> records = consumer.poll(1000 * 60);
+                ConsumerRecords<String, ReconciledBrandMessage> records = consumer.poll(1000 * 60);
                 if (records.count() > 0) {
                     logger.info("pull {} to consume", records.count());
                 } else {
                     logger.warn("there is no records pooling from consumer within 60 seconds");
                 }
-                for (ConsumerRecord<String, ReconciledMessage> record : records) {
+                for (ConsumerRecord<String, ReconciledBrandMessage> record : records) {
                     logger.info("consumer {} receives message:{} ",id, record.value());
                     count++;
                     doCommitSync(record.value());

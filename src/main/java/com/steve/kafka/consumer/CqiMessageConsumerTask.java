@@ -1,7 +1,6 @@
 package com.steve.kafka.consumer;
 
 import com.steve.kafka.pojo.CqiMessage;
-import com.steve.kafka.pojo.ReconciledMessage;
 import com.steve.kafka.serialize.CqiMessageDeSerializer;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;

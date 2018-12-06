@@ -1,9 +1,8 @@
 package com.steve.kafka.producer;
 
 import com.coupang.catalog.message.demeter.source.update.v1.CqiBrandSourceUpdateValue;
-import com.steve.kafka.pojo.ReconciledMessage;
+import com.steve.kafka.pojo.ReconciledBrandMessage;
 import com.steve.kafka.serialize.ReconciledMessageAvroSerializer;
-import com.steve.kafka.serialize.ReconciledMessageSerializer;
 import org.apache.kafka.clients.producer.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,7 @@ public class ReconciledMessageFakeProducer {
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, "org.apache.kafka.common.serialization.StringSerializer");
         props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ReconciledMessageAvroSerializer.class.getName());
 
-        KafkaProducer kafkaProducer = new KafkaProducer<String, ReconciledMessage>(props);
+        KafkaProducer kafkaProducer = new KafkaProducer<String, ReconciledBrandMessage>(props);
         producer = kafkaProducer;
     }
 
