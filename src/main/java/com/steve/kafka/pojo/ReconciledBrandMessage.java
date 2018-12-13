@@ -10,6 +10,10 @@ public class ReconciledBrandMessage implements Serializable {
 
     private Long itemId;
 
+    private Long productId;
+
+    private Long prevCqiBrandId;
+
     private String title;
 
     private String originalBrand;
@@ -120,6 +124,22 @@ public class ReconciledBrandMessage implements Serializable {
         this.nerBrand = nerBrand;
     }
 
+    public Long getProductId() {
+        return productId;
+    }
+
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+
+    public Long getPrevCqiBrandId() {
+        return prevCqiBrandId;
+    }
+
+    public void setPrevCqiBrandId(Long prevCqiBrandId) {
+        this.prevCqiBrandId = prevCqiBrandId;
+    }
+
     public ReconciledBrandMessage() {
 
     }
@@ -132,10 +152,11 @@ public class ReconciledBrandMessage implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public ReconciledBrandMessage(Long itemId, String title, String originalBrand, String originalCategories
+    public ReconciledBrandMessage(Long itemId, Long productId, String title, String originalBrand, String originalCategories
             , Long predictCategoryDepth4, Long predictCategoryDepth3, Long predictCategoryDepth2, Long predictCategoryDepth1,
-            String manufacturer, String nerBrand, long timestamp, String txId) {
+            String manufacturer, String nerBrand, long prevCqiBrandId, long timestamp, String txId) {
         this.itemId = itemId;
+        this.productId = productId;
         this.title = title;
         this.originalBrand = originalBrand;
         this.originalCategories = originalCategories;
@@ -147,6 +168,7 @@ public class ReconciledBrandMessage implements Serializable {
         this.predictCategoryDepth2 = predictCategoryDepth2;
         this.predictCategoryDepth1 = predictCategoryDepth1;
         this.nerBrand = nerBrand;
+        this.prevCqiBrandId = prevCqiBrandId;
     }
 
     @Override
