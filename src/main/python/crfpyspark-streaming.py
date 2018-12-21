@@ -17,8 +17,11 @@ from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 from kafka import KafkaProducer
 from kazoo.client import KazooClient
+
 import sys
 sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
+
+
 
 THREDSHOLD = 0.6
 INTERVAL = 30
@@ -40,7 +43,6 @@ from crfTaggerManager import extract_features
 from kafkaProducer import sendData
 
 producer = KafkaProducer(bootstrap_servers=BROKER_LIST)
-
 
 
 # remove special characters; normalize synonyms by using current brand dictionary
@@ -182,7 +184,7 @@ def process_group(rdd):
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
         finalDf = predict_ner(deseralizedDf)
-        finalDf.rdd.foreach(send_msg)
+        #finalDf.rdd.foreach(send_msg)
         #calculate_thoughput(python_kafka_producer_performance())
     save_offsets(rdd)
 
