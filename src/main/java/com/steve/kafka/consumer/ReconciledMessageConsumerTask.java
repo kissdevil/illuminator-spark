@@ -91,7 +91,7 @@ public class ReconciledMessageConsumerTask implements Runnable{
                     logger.warn("there is no records pooling from consumer within 60 seconds");
                 }
                 for (ConsumerRecord<String, ReconciledBrandMessage> record : records) {
-                    logger.info("consumer {} receives message:{} ",id, record.value());
+                    logger.info("consumer {} receives message:{} ", id, record.value());
                     count++;
                     doCommitSync(record.value());
                 }

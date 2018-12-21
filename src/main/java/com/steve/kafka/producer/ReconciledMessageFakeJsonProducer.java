@@ -67,6 +67,28 @@ public class ReconciledMessageFakeJsonProducer {
                 }
             });
             itemId++;
+
+            ProducerRecord<String, ReconciledBrandMessage> message3 = new ProducerRecord<>(topic, String.valueOf(itemId),
+                   new ReconciledBrandMessage(itemId, 300L, "해외) 아디다스 3스트라이프 크롭 후드티 ADIDAS 3 STRIPE CROPPED HOODIE",
+                     "해외) 아디다스 3스트라이프 크롭 후드티", "79269", 104059L, 104026L, 103621L, 103371L, "",
+                     "상세페이지 참조", 0, new Date().getTime(), java.util.UUID.randomUUID().toString()));
+            producer.send(message3, (RecordMetadata recordMetadata, Exception e) -> {
+                if (e != null) {
+                    logger.error("error while send to kafka, itemid:" + message3.value().getItemId(), e);
+                }
+            });
+            itemId++;
+
+            ProducerRecord<String, ReconciledBrandMessage> message4 = new ProducerRecord<>(topic, String.valueOf(itemId),
+                        new ReconciledBrandMessage(itemId, 400L, "신송 된장골드 4kg 2kgX2입 조미료/장류/분말류", "주)팡팡마트",
+                                                   "82528", 58467L, 72679L, 58461L, 59258L, "",
+                        "[상세설명참조] / [상세설명참조]", 0, new Date().getTime(), java.util.UUID.randomUUID().toString()));
+            producer.send(message4, (RecordMetadata recordMetadata, Exception e) -> {
+                if (e != null) {
+                    logger.error("error while send to kafka, itemid:" + message4.value().getItemId(), e);
+                }
+            });
+            itemId++;
             //Thread.sleep(1000*5);
         }
         producer.close();

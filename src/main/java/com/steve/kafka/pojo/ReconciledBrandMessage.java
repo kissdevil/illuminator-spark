@@ -189,4 +189,25 @@ public class ReconciledBrandMessage implements Serializable {
         result = 31 * result + txId.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "ReconciledBrandMessage{" +
+               "itemId=" + itemId +
+               ", productId=" + productId +
+               ", prevCqiBrandId=" + prevCqiBrandId +
+               ", title='" + title + '\'' +
+               ", originalBrand='" + originalBrand + '\'' +
+               ", originalCategories='" + originalCategories + '\'' +
+               ", manufacturer='" + manufacturer + '\'' +
+               ", txId='" + txId + '\'' +
+               ", timestamp=" + timestamp +
+               ", predictCategoryDepth4=" + predictCategoryDepth4 +
+               ", predictCategoryDepth3=" + predictCategoryDepth3 +
+               ", predictCategoryDepth2=" + predictCategoryDepth2 +
+               ", predictCategoryDepth1=" + predictCategoryDepth1 +
+               ", nerBrand='" + nerBrand + '\'' +
+               '}';
+    }
+
 }

@@ -5,6 +5,7 @@
 import json
 import regex
 import traceback
+
 from pyspark.sql.types import *
 from pyspark.sql.functions import *
 from pyspark import SparkConf, SparkContext, SQLContext
@@ -16,9 +17,11 @@ from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 from kafka import KafkaProducer
 from kazoo.client import KazooClient
+import sys
+sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
 
 THREDSHOLD = 0.6
-INTERVAL = 60
+INTERVAL = 30
 STREAMING_CONSUME_TOPIC_NAME = "cqibrandner"
 BROKER_LIST = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
 ZOOKEEPER_SERVERS = "127.0.0.1:2181"
@@ -37,6 +40,8 @@ from crfTaggerManager import extract_features
 from kafkaProducer import sendData
 
 producer = KafkaProducer(bootstrap_servers=BROKER_LIST)
+
+
 
 # remove special characters; normalize synonyms by using current brand dictionary
 pattern = regex.compile("[^\p{L}\p{N}'.]")
@@ -127,9 +132,9 @@ def read_offsets(zk, topics):
     from_offsets={}
     try:
         for topic in topic_array:
-            print(topic)
             for partition in zk.get_children(f'/consumers/{topic}'):
                 topic_partion = TopicAndPartition(topic, int(partition))
+                print(topic_partion)
                 offset = int(zk.get(f'/consumers/{topic}/{partition}')[0])
                 from_offsets[topic_partion] = offset
     except Exception as e:
@@ -176,21 +181,47 @@ def process_group(rdd):
         print("rdd has " + str(rdd.getNumPartitions()) + " partitions")
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
-        finalDf = predict_ner(deseralizedDf).select("itemId","nerBrand","nerBrandInDict")
-        finalDf.show(10000, False)
-        #finalDf.rdd.foreach(send_msg)
+        finalDf = predict_ner(deseralizedDf)
+        finalDf.rdd.foreach(send_msg)
         #calculate_thoughput(python_kafka_producer_performance())
     save_offsets(rdd)
 
 def send_msg(row):
     itemId = row.itemId
+    productId = row.productId
+    prevCqiBrandId = row.prevCqiBrandId
+    title = row.title
+    originalBrand = row.originalBrand
+    originalCategories = row.originalCategories
+    manufacturer = row.manufacturer
+    timestamp = row.timestamp
+    txId = row.txId
+    predictCategoryDepth4 = row.predictCategoryDepth4
+    predictCategoryDepth3 = row.predictCategoryDepth3
+    predictCategoryDepth2 = row.predictCategoryDepth2
+    predictCategoryDepth1 = row.predictCategoryDepth1
     nerBrand = row.nerBrand
+    nerBrandInDict = row.nerBrandInDict
     data = {
-             'itemId': itemId,
-             'nerBrand': nerBrand
-           }
+        'itemId': itemId,
+        'productId' : productId,
+        'prevCqiBrandId': prevCqiBrandId,
+        'title':title,
+        'originalBrand':originalBrand,
+        'originalCategories':originalCategories,
+        'manufacturer':manufacturer,
+        'timestamp':timestamp,
+        'txId':txId,
+        'predictCategoryDepth4':predictCategoryDepth4,
+        'predictCategoryDepth3':predictCategoryDepth3,
+        'predictCategoryDepth2':predictCategoryDepth2,
+        'predictCategoryDepth1':predictCategoryDepth1,
+    }
+    if nerBrandInDict:
+        data['nerBrand'] = nerBrand
+    else:
+        data['nerBrand'] = ''
     sendData(data)
-
 
 def predict_ner(dataDFRaw):
     clean_func = udf(cleanSpecialChar, StringType())
