@@ -2,7 +2,6 @@
 
 # In[1]:
 
-
 import json
 import regex
 import traceback
@@ -18,13 +17,12 @@ from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 from kafka import KafkaProducer
 from kazoo.client import KazooClient
 
-THREDSHOLD = 0.8
-
-interval = 30
-
-topic_name = "brandstreamingpython"
-broker_list = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
+THREDSHOLD = 0.6
+INTERVAL = 60
+STREAMING_CONSUME_TOPIC_NAME = "cqibrandner"
+BROKER_LIST = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
 ZOOKEEPER_SERVERS = "127.0.0.1:2181"
+
 offsetRanges = []
 
 sc = SparkContext.getOrCreate()
@@ -38,7 +36,7 @@ spark = SparkSession(sc)
 from crfTaggerManager import extract_features
 from kafkaProducer import sendData
 
-producer = KafkaProducer(bootstrap_servers=broker_list)
+producer = KafkaProducer(bootstrap_servers=BROKER_LIST)
 
 # remove special characters; normalize synonyms by using current brand dictionary
 pattern = regex.compile("[^\p{L}\p{N}'.]")
@@ -157,11 +155,18 @@ def save_offsets(rdd):
 schema = StructType(
     [
         StructField('itemId', LongType(), True),
+        StructField('productId', LongType(), True),
+        StructField('prevCqiBrandId', LongType(), True),
         StructField('title', StringType(), True),
         StructField('originalBrand', StringType(), True),
         StructField('originalCategories', StringType(), True),
         StructField('manufacturer', StringType(), True),
         StructField('timestamp', LongType(), True),
+        StructField('txId', StringType(), True),
+        StructField('predictCategoryDepth4', LongType(), True),
+        StructField('predictCategoryDepth3', LongType(), True),
+        StructField('predictCategoryDepth2', LongType(), True),
+        StructField('predictCategoryDepth1', LongType(), True)
     ]
 )
 
@@ -171,9 +176,8 @@ def process_group(rdd):
         print("rdd has " + str(rdd.getNumPartitions()) + " partitions")
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
-        #deseralizedDf.show(1000000, False)
-        finalDf = handle(deseralizedDf).select("itemId","nerBrand","nerBrandInDict")
-        finalDf.show(100000, False)
+        finalDf = predict_ner(deseralizedDf).select("itemId","nerBrand","nerBrandInDict")
+        finalDf.show(10000, False)
         #finalDf.rdd.foreach(send_msg)
         #calculate_thoughput(python_kafka_producer_performance())
     save_offsets(rdd)
@@ -188,7 +192,7 @@ def send_msg(row):
     sendData(data)
 
 
-def handle(dataDFRaw):
+def predict_ner(dataDFRaw):
     clean_func = udf(cleanSpecialChar, StringType())
     dataDFRaw = dataDFRaw.withColumn('productNameToken', clean_func('title'))
 
@@ -213,13 +217,13 @@ def handle(dataDFRaw):
 
 
 spark = SparkSession(sc)
-ssc = StreamingContext(sc, int(interval))
+ssc = StreamingContext(sc, int(INTERVAL))
 
 zk = get_zookeeper_instance()
-from_offsets = read_offsets(zk, topic_name)
+from_offsets = read_offsets(zk, STREAMING_CONSUME_TOPIC_NAME)
 
 directKafkaStream = KafkaUtils.createDirectStream(
-    ssc, [topic_name], {"metadata.broker.list": broker_list},
+    ssc, [STREAMING_CONSUME_TOPIC_NAME], {"metadata.broker.list": BROKER_LIST},
     fromOffsets=from_offsets)
 
 directKafkaStream.foreachRDD(lambda rdd: process_group(rdd))

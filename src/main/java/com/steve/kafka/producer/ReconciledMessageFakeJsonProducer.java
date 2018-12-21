@@ -26,7 +26,7 @@ public class ReconciledMessageFakeJsonProducer {
         properties.load(input);
 
         initProducer(properties);
-        sendBatch(producer, properties.getProperty("demetercqibrand"));
+        sendBatch(producer, properties.getProperty("demeterner"));
     }
 
     public static void initProducer(Properties properties) throws IOException {
@@ -43,29 +43,30 @@ public class ReconciledMessageFakeJsonProducer {
     }
 
     public static void sendBatch(Producer<String, ReconciledBrandMessage> producer, String topic) throws InterruptedException {
-        for (int round = 1; round <= 50; round++) {
-            for (int i = 1; i <= 50; i++) {
-                //Long itemId = Long.valueOf(round - 1) * 10 + i;
-                Long itemId = Long.valueOf(round - 1) * 10;
-                ProducerRecord<String, ReconciledBrandMessage> message = new ProducerRecord<>(topic, String.valueOf(itemId),
-                                 new ReconciledBrandMessage(itemId, 100L, "SK-II LXP 얼티미트 퍼펙팅 크림 50g",
-                                         "sk2", "56653", 56653L, 56649L, 56648L, 56112L, "sk-II", "에스케이투",
-                                                            0, new Date().getTime(),java.util.UUID.randomUUID().toString()));
-                producer.send(message, (RecordMetadata recordMetadata, Exception e) -> {
-                    if (e != null) {
-                        logger.error("error while send to kafka, itemid:" + message.value().getItemId(), e);
-                    }
-                });
-                ProducerRecord<String, ReconciledBrandMessage> message2 = new ProducerRecord<>(topic, String.valueOf(itemId),
-                                 new ReconciledBrandMessage(itemId, 200L, "[중고명품 미스터문] MCM(엠씨엠) 1011103041506 베이지 브라운 레더 토트백",
-                                          "[중고명품 미스터문] MCM(엠씨엠)", "69284", 71945L, 69283L, 69183L, 69182L, "MCM",
-                                           "엠씨엠", 0, new Date().getTime(),java.util.UUID.randomUUID().toString()));
-                producer.send(message2, (RecordMetadata recordMetadata, Exception e) -> {
-                    if (e != null) {
-                        logger.error("error while send to kafka, itemid:" + message2.value().getItemId(), e);
-                    }
-                });
-            }
+        long itemId = 1L;
+        for (int round = 1; round <= 500; round++) {
+            //Long itemId = Long.valueOf(round - 1) * 10 + i;
+            ProducerRecord<String, ReconciledBrandMessage> message = new ProducerRecord<>(topic, String.valueOf(itemId),
+                         new ReconciledBrandMessage(itemId, 100L, "SK-II LXP 얼티미트 퍼펙팅 크림 50g",
+                                 "sk2", "56653", 56653L, 56649L, 56648L, 56112L, "sk-II", "에스케이투",
+                                  0, new Date().getTime(), java.util.UUID.randomUUID().toString()));
+            producer.send(message, (RecordMetadata recordMetadata, Exception e) -> {
+                if (e != null) {
+                    logger.error("error while send to kafka, itemid:" + message.value().getItemId(), e);
+                }
+            });
+            itemId++;
+
+            ProducerRecord<String, ReconciledBrandMessage> message2 = new ProducerRecord<>(topic, String.valueOf(itemId),
+                         new ReconciledBrandMessage(itemId, 200L, "[중고명품 미스터문] MCM(엠씨엠) 1011103041506 베이지 브라운 레더 토트백",
+                                  "[중고명품 미스터문] MCM(엠씨엠)", "69284", 71945L, 69283L, 69183L, 69182L, "MCM",
+                                  "엠씨엠", 0, new Date().getTime(), java.util.UUID.randomUUID().toString()));
+            producer.send(message2, (RecordMetadata recordMetadata, Exception e) -> {
+                if (e != null) {
+                    logger.error("error while send to kafka, itemid:" + message2.value().getItemId(), e);
+                }
+            });
+            itemId++;
             //Thread.sleep(1000*5);
         }
         producer.close();
