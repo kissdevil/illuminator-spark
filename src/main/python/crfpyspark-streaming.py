@@ -21,12 +21,10 @@ import sys
 sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
 
 
-
 THREDSHOLD = 0.6
 INTERVAL = 30
 STREAMING_CONSUME_TOPIC_NAME = "cqibrandner"
 BROKER_LIST = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
-#ZOOKEEPER_SERVERS = "127.0.0.1:2181"
 
 offsetRanges = []
 
