@@ -16,7 +16,6 @@ from pyspark.streaming import StreamingContext
 from pyspark.streaming.kafka import KafkaUtils, TopicAndPartition
 
 from kafka import KafkaProducer
-from kazoo.client import KazooClient
 
 import sys
 sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
@@ -27,7 +26,7 @@ THREDSHOLD = 0.6
 INTERVAL = 30
 STREAMING_CONSUME_TOPIC_NAME = "cqibrandner"
 BROKER_LIST = "127.0.0.1:9093,127.0.0.1:9094,127.0.0.1:9095"
-ZOOKEEPER_SERVERS = "127.0.0.1:2181"
+#ZOOKEEPER_SERVERS = "127.0.0.1:2181"
 
 offsetRanges = []
 
@@ -35,12 +34,12 @@ sc = SparkContext.getOrCreate()
 
 sc.addFile('hdfs:///model/crf.model.5Feat_33018Pos_11350Neg')
 sc.addFile('hdfs:///data/brand_dict.txt')
-sc.addFile('hdfs:///data/part-00001-736e3b80-97f5-41af-b9de-a6c33c55adaa.avro')
 
 spark = SparkSession(sc)
 
 from crfTaggerManager import extract_features
 from kafkaProducer import sendData
+from redisOffsetManager import get_sentinel_instance,read_offsets_from_redis,save_offsets_to_redis
 
 producer = KafkaProducer(bootstrap_servers=BROKER_LIST)
 
@@ -122,43 +121,6 @@ def is_brand_in_dict(brand, brandDict=brandDictMap):
         return brand in brandDict
 
 
-def get_zookeeper_instance():
-    if 'KazooSingletonInstance' not in globals():
-        globals()['KazooSingletonInstance'] = KazooClient(ZOOKEEPER_SERVERS)
-        globals()['KazooSingletonInstance'].start()
-    return globals()['KazooSingletonInstance']
-
-def read_offsets(zk, topics):
-    from pyspark.streaming.kafka import TopicAndPartition
-    topic_array = topics.split(",")
-    from_offsets={}
-    try:
-        for topic in topic_array:
-            for partition in zk.get_children(f'/consumers/{topic}'):
-                topic_partion = TopicAndPartition(topic, int(partition))
-                print(topic_partion)
-                offset = int(zk.get(f'/consumers/{topic}/{partition}')[0])
-                from_offsets[topic_partion] = offset
-    except Exception as e:
-        print("fetch offset from zookeeper error, will skip this batch:"+str(e))
-        print(traceback.format_exc())
-    print(from_offsets)
-    return from_offsets
-
-
-def save_offsets(rdd):
-    zk = get_zookeeper_instance()
-    try:
-        for offset in rdd.offsetRanges():
-            path = f"/consumers/{offset.topic}/{offset.partition}"
-            print(path)
-            print(offset.untilOffset)
-            zk.ensure_path(path)
-            zk.set(path, str(offset.untilOffset).encode())
-    except Exception as e:
-        print("save offset from zookeeper error:"+str(e))
-        print(traceback.format_exc())
-
 schema = StructType(
     [
         StructField('itemId', LongType(), True),
@@ -186,7 +148,7 @@ def process_group(rdd):
         finalDf = predict_ner(deseralizedDf)
         #finalDf.rdd.foreach(send_msg)
         #calculate_thoughput(python_kafka_producer_performance())
-    save_offsets(rdd)
+    save_offsets_to_redis(rdd)
 
 def send_msg(row):
     itemId = row.itemId
@@ -252,12 +214,15 @@ def predict_ner(dataDFRaw):
 spark = SparkSession(sc)
 ssc = StreamingContext(sc, int(INTERVAL))
 
-zk = get_zookeeper_instance()
-from_offsets = read_offsets(zk, STREAMING_CONSUME_TOPIC_NAME)
+#zk = get_zookeeper_instance()
+#from_offsets = read_offsets(zk, STREAMING_CONSUME_TOPIC_NAME)
+
+sentinel = get_sentinel_instance()
+from_offsets_redis = read_offsets_from_redis(sentinel,STREAMING_CONSUME_TOPIC_NAME)
 
 directKafkaStream = KafkaUtils.createDirectStream(
     ssc, [STREAMING_CONSUME_TOPIC_NAME], {"metadata.broker.list": BROKER_LIST},
-    fromOffsets=from_offsets)
+    fromOffsets=from_offsets_redis)
 
 directKafkaStream.foreachRDD(lambda rdd: process_group(rdd))
 
