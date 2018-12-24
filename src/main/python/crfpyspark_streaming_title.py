@@ -35,9 +35,9 @@ sc.addFile('hdfs:///data/brand_dict.txt')
 
 spark = SparkSession(sc)
 
-from crfTaggerManager import extract_features
-from kafkaProducer import sendData
-from redisOffsetManager import get_sentinel_instance,read_offsets_from_redis,save_offsets_to_redis
+from crf_title_tagger import extract_features
+from kafka_producer import sendData
+from redis_offset_manager import get_sentinel_instance,read_offsets_from_redis,save_offsets_to_redis
 
 producer = KafkaProducer(bootstrap_servers=BROKER_LIST)
 
@@ -141,14 +141,13 @@ schema = StructType(
 )
 
 def process_group(rdd):
-    #processed_rdd = rdd.foreach(process)
     if rdd.count() > 0:
         print("rdd has " + str(rdd.getNumPartitions()) + " partitions")
         df = rdd.toDF()
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
         finalDf = predict_ner(deseralizedDf)
-        #finalDf.rdd.foreach(send_msg)
-        finalDf.show(10000,False)
+        finalDf.rdd.foreach(send_msg)
+        #finalDf.show(10000,False)
         #calculate_thoughput(python_kafka_producer_performance())
     save_offsets_to_redis(rdd)
 
