@@ -99,7 +99,10 @@ def unigram(stringList, brandDict):
 
 
 def cleanSpecialChar(s):
-    return pattern.sub(' ', s)
+    if s:
+        return pattern.sub(' ', s)
+    else:
+        return ''
 
 
 def get_ner_brand(titleToken, brand_signal, probability):
@@ -147,6 +150,7 @@ def process_group(rdd):
         deseralizedDf = df.withColumn("data", from_json("_2", schema)).select(col('data.*'))
         finalDf = predict_ner(deseralizedDf)
         #finalDf.rdd.foreach(send_msg)
+        finalDf.show(10000,False)
         #calculate_thoughput(python_kafka_producer_performance())
     save_offsets_to_redis(rdd)
 
@@ -191,7 +195,6 @@ def predict_ner(dataDFRaw):
     clean_func = udf(cleanSpecialChar, StringType())
     dataDFRaw = dataDFRaw.withColumn('productNameToken', clean_func('title'))
 
-
     norm_func = udf(title_brand_normalize, StringType())
     dataDFRaw = dataDFRaw.withColumn('productNameTokenNorm', norm_func('productNameToken'))
 
@@ -204,10 +207,9 @@ def predict_ner(dataDFRaw):
 
     udf_ner_brand = udf(get_ner_brand, StringType())
     ner_brand_df = tokenWithFeatureData.withColumn('nerBrand', udf_ner_brand('productNameTokenNorm',
-                                                   'feature.brand_signal','feature.probability'))
+                      'feature.brand_signal','feature.probability'))
     udf_in_dict = udf(is_brand_in_dict, BooleanType())
     ner_brand_df = ner_brand_df.withColumn('nerBrandInDict', udf_in_dict('nerBrand'))
-
     return ner_brand_df
 
 

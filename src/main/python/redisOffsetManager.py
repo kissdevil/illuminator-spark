@@ -5,6 +5,7 @@ import traceback
 
 REDIS_NODES = [('127.0.0.1', 26379),('127.0.0.1', 26380),('127.0.0.1', 26381)]
 SOCKET_TIMEOUT = 300
+MASTER_POOL_NAME = 'brand_norm_redis'
 
 def get_sentinel_instance():
     if 'SentinelSingletonInstance' not in globals():
@@ -14,7 +15,7 @@ def get_sentinel_instance():
 def read_offsets_from_redis(sentinel,topics):
     from_offsets={}
     topic_array = topics.split(",")
-    master = sentinel.master_for('brand_norm_redis', socket_timeout=SOCKET_TIMEOUT)
+    master = sentinel.master_for(MASTER_POOL_NAME, socket_timeout=SOCKET_TIMEOUT)
     try:
         for topic in topic_array:
             offset_dict = master.hgetall(topic+"_offset")
