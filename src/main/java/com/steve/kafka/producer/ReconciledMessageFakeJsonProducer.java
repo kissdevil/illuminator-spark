@@ -81,11 +81,22 @@ public class ReconciledMessageFakeJsonProducer {
 
             ProducerRecord<String, ReconciledBrandMessage> message4 = new ProducerRecord<>(topic, String.valueOf(itemId),
                         new ReconciledBrandMessage(itemId, 400L, "신송 된장골드 4kg 2kgX2입 조미료/장류/분말류", "주)팡팡마트",
-                                                   "82528", 58467L, 72679L, 58461L, 59258L, "",
+                        "82528", 58467L, 72679L, 58461L, 59258L, "",
                         "[상세설명참조] / [상세설명참조]", 0, new Date().getTime(), java.util.UUID.randomUUID().toString()));
             producer.send(message4, (RecordMetadata recordMetadata, Exception e) -> {
                 if (e != null) {
                     logger.error("error while send to kafka, itemid:" + message4.value().getItemId(), e);
+                }
+            });
+            itemId++;
+
+            ProducerRecord<String, ReconciledBrandMessage> message5 = new ProducerRecord<>(topic, String.valueOf(itemId),
+                         new ReconciledBrandMessage(itemId, 400L, "test book dvd", "book",
+                          "92149", 0L, 0L, 0L, 0L, "",
+                          "", 0, new Date().getTime(), java.util.UUID.randomUUID().toString()));
+            producer.send(message5, (RecordMetadata recordMetadata, Exception e) -> {
+                if (e != null) {
+                    logger.error("error while send to kafka, itemid:" + message5.value().getItemId(), e);
                 }
             });
             itemId++;
