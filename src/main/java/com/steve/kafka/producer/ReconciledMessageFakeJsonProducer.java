@@ -44,7 +44,7 @@ public class ReconciledMessageFakeJsonProducer {
 
     public static void sendBatch(Producer<String, ReconciledBrandMessage> producer, String topic) throws InterruptedException {
         long itemId = 1L;
-        for (int round = 1; round <= 2000; round++) {
+        for (int round = 1; round <= 200; round++) {
             //Long itemId = Long.valueOf(round - 1) * 10 + i;
             ProducerRecord<String, ReconciledBrandMessage> message = new ProducerRecord<>(topic, String.valueOf(itemId),
                          new ReconciledBrandMessage(itemId, 100L, "SK-II LXP 얼티미트 퍼펙팅 크림 50g",
