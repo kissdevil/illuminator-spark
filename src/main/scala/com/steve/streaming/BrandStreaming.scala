@@ -31,20 +31,20 @@ object BrandStreaming {
     //kafkaParams += (ConsumerConfig.AUTO_OFFSET_RESET_CONFIG -> "none")
     //kafkaParams += (ConsumerConfig.MAX_POLL_RECORDS_CONFIG -> "1000")
     kafkaParams += (ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> "org.apache.kafka.common.serialization.StringDeserializer")
-    kafkaParams += (ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[com.steve.kafka.serialize.ReconciledMessageAvroDeserializer])
+    kafkaParams += (ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[com.steve.kafka.serialize.ReconciledMessageDeSerializer])
 
     val conf = new SparkConf().setAppName("BrandStreaming").setMaster("local[2]")
     val sc = new SparkContext(conf)
 
     val ssc = new StreamingContext(sc, Seconds(30))
 
-    val topic = "brandstreaming"
+    val topic = "cqibrandstreamingflow"
 
     val streaming =
       KafkaUtils.createDirectStream(
         ssc,
         LocationStrategies.PreferConsistent,
-        ConsumerStrategies.Subscribe[String, CqiBrandSourceStreamingUpdate](
+        ConsumerStrategies.Subscribe[String, ReconciledBrandMessage](
           Arrays.asList(topic),
           mapAsJavaMap(kafkaParams)
         )
